@@ -783,6 +783,17 @@ export default function App() {
               <p className="text-[0.8rem] text-[#8B9CB8] font-mono font-bold">{timeStr}</p>
            </div>
         </div>
+
+        {/* UN SDGs Addressed */}
+        <div className="p-4 border-t border-white/[0.06] pb-6">
+           <p className="font-semibold text-[0.65rem] text-[#8B9CB8] uppercase tracking-wider mb-3">UN SDGs Addressed</p>
+           <div className="flex gap-2">
+              <div className="flex items-center justify-center w-7 h-7 rounded shadow-md bg-[#E5243B] text-white font-bold text-xs" title="SDG 1: No Poverty">1</div>
+              <div className="flex items-center justify-center w-7 h-7 rounded shadow-md bg-[#4C9F38] text-white font-bold text-xs" title="SDG 3: Good Health and Well-being">3</div>
+              <div className="flex items-center justify-center w-7 h-7 rounded shadow-md bg-[#FD9D24] text-white font-bold text-xs" title="SDG 11: Sustainable Cities and Communities">11</div>
+              <div className="flex items-center justify-center w-7 h-7 rounded shadow-md bg-[#3F7E44] text-white font-bold text-xs" title="SDG 13: Climate Action">13</div>
+           </div>
+        </div>
       </div>
 
       {/* MAIN CONTENT AREA */}
