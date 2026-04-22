@@ -57,6 +57,18 @@ function smartLocalExtract(text: string): Partial<any> {
     'ghatkopar': { lat: 19.0884, lng: 72.9125 },
     'sion': { lat: 19.0390, lng: 72.8619 },
     'mumbai': { lat: 19.0760, lng: 72.8777 },
+    // Delhi Landmarks
+    'india gate': { lat: 28.6129, lng: 77.2295 },
+    'connaught place': { lat: 28.6315, lng: 77.2167 },
+    'cp': { lat: 28.6315, lng: 77.2167 },
+    'chandni chowk': { lat: 28.6506, lng: 77.2300 },
+    'hauz khas': { lat: 28.5494, lng: 77.2001 },
+    'saket': { lat: 28.5204, lng: 77.2131 },
+    'dwarka': { lat: 28.5823, lng: 77.0500 },
+    'rohini': { lat: 28.7158, lng: 77.1139 },
+    'karol bagh': { lat: 28.6550, lng: 77.1888 },
+    'delhi': { lat: 28.6139, lng: 77.2090 },
+    'new delhi': { lat: 28.6139, lng: 77.2090 },
   };
 
   let locationName = 'Mumbai Metropolitan Area';
