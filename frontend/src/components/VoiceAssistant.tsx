@@ -85,12 +85,12 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  
+
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis>(window.speechSynthesis);
   const silenceTimerRef = useRef<any>(null);
   const maxDurationTimerRef = useRef<any>(null);
-  
+
   // Refs to fix stale closures
   const stepRef = useRef(step);
   const answersRef = useRef(answers);
@@ -105,7 +105,7 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
   }, [step, answers, currentText, userLang]);
 
   useEffect(() => {
-    const handleVoices = () => {};
+    const handleVoices = () => { };
     window.speechSynthesis.onvoiceschanged = handleVoices;
     return () => { window.speechSynthesis.onvoiceschanged = null; };
   }, []);
@@ -131,20 +131,20 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
             }
           }
           if (final) {
-             setCurrentText(final);
-             currentTextRef.current = final;
-             if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-             handleNext(final);
+            setCurrentText(final);
+            currentTextRef.current = final;
+            if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+            handleNext(final);
           } else {
-             setCurrentText(interim);
-             currentTextRef.current = interim;
-             
-             if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-             if (interim.trim().length > 0) {
-               silenceTimerRef.current = setTimeout(() => {
-                 handleNext(interim);
-               }, 2500);
-             }
+            setCurrentText(interim);
+            currentTextRef.current = interim;
+
+            if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+            if (interim.trim().length > 0) {
+              silenceTimerRef.current = setTimeout(() => {
+                handleNext(interim);
+              }, 2500);
+            }
           }
         };
 
@@ -153,7 +153,7 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
           if (maxDurationTimerRef.current) clearTimeout(maxDurationTimerRef.current);
           maxDurationTimerRef.current = setTimeout(() => {
             if (currentTextRef.current === "" || !currentTextRef.current) {
-               handleNext(); 
+              handleNext();
             }
           }, 15000);
         };
@@ -172,10 +172,10 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
         };
       }
     }
-    
+
     return () => {
-       synthRef.current.cancel();
-       if (recognitionRef.current) recognitionRef.current.abort();
+      synthRef.current.cancel();
+      if (recognitionRef.current) recognitionRef.current.abort();
     };
   }, []);
 
@@ -214,22 +214,22 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
 
     // FIXED: Storing in a ref prevents garbage collection cut-offs mid-speech
     const utterance = new SpeechSynthesisUtterance(text);
-    currentUtteranceRef.current = utterance; 
-    
+    currentUtteranceRef.current = utterance;
+
     utterance.lang = lang;
     utterance.rate = 1.0;
-    
+
     const voices = synthRef.current.getVoices();
     if (voices.length > 0) {
       const premiumVoice = voices.find(v => v.lang.includes(lang) && (v.name.includes('Google') || v.name.includes('Premium') || v.name.includes('Natural')));
       if (premiumVoice) {
-         utterance.voice = premiumVoice;
+        utterance.voice = premiumVoice;
       } else {
-         let fallbackVoice = voices.find(v => v.lang.includes(lang));
-         if (!fallbackVoice && (lang.includes('mr') || lang.includes('ta') || lang.includes('bn') || lang.includes('te') || lang.includes('gu'))) {
-             fallbackVoice = voices.find(v => v.lang.includes('hi-IN'));
-         }
-         if (fallbackVoice) utterance.voice = fallbackVoice;
+        let fallbackVoice = voices.find(v => v.lang.includes(lang));
+        if (!fallbackVoice && (lang.includes('mr') || lang.includes('ta') || lang.includes('bn') || lang.includes('te') || lang.includes('gu'))) {
+          fallbackVoice = voices.find(v => v.lang.includes('hi-IN'));
+        }
+        if (fallbackVoice) utterance.voice = fallbackVoice;
       }
     }
 
@@ -240,7 +240,7 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
         if (onComplete) onComplete();
       }
     }, 12000); // Slightly more patience for longer strings
-    
+
     utterance.onend = () => {
       if (isCanceled) return;
       clearTimeout(timeout);
@@ -248,15 +248,15 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
       currentUtteranceRef.current = null;
       if (onComplete) onComplete();
     };
-    
+
     utterance.onerror = (e) => {
-       if ((e as any).error === 'canceled') isCanceled = true;
-       clearTimeout(timeout);
-       currentUtteranceRef.current = null;
+      if ((e as any).error === 'canceled') isCanceled = true;
+      clearTimeout(timeout);
+      currentUtteranceRef.current = null;
     };
-    
+
     setTimeout(() => {
-       if (!isCanceled) synthRef.current.speak(utterance);
+      if (!isCanceled) synthRef.current.speak(utterance);
     }, 50);
   };
 
@@ -273,11 +273,11 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
       "Namaste. Welcome to CommunityPulse Emergency Reporter.",
       'en-IN',
       () => {
-         clearTimeout(fallback);
-         if (stepRef.current === -2) {
-           setStep(-1);
-           askLanguage();
-         }
+        clearTimeout(fallback);
+        if (stepRef.current === -2) {
+          setStep(-1);
+          askLanguage();
+        }
       }
     );
   };
@@ -288,25 +288,25 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
       "Which language are you comfortable in answering? Please say English, Hindi, Marathi, Tamil, Bengali, or Telugu.",
       'en-IN',
       () => {
-         if (recognitionRef.current) recognitionRef.current.lang = 'en-IN';
-         startListening();
+        if (recognitionRef.current) recognitionRef.current.lang = 'en-IN';
+        startListening();
       }
     );
   };
 
   const askQuestion = (idx: number) => {
     setCurrentText("");
-    
+
     const langKey = userLangRef.current || 'english';
     const questionText = LOCALIZED_QUESTIONS[langKey][idx];
     const synthLang = LANG_CONFIG[langKey].code;
-    
+
     if (recognitionRef.current) {
-       if (idx === 2) {
-         recognitionRef.current.lang = 'en-IN';
-       } else {
-         recognitionRef.current.lang = synthLang; 
-       }
+      if (idx === 2) {
+        recognitionRef.current.lang = 'en-IN';
+      } else {
+        recognitionRef.current.lang = synthLang;
+      }
     }
 
     executeSpeech(questionText, synthLang, () => {
@@ -321,38 +321,38 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
       setIsListening(true);
       try {
         recognitionRef.current.start();
-      } catch(e) {}
+      } catch (e) { }
     }
   };
 
   const handleNext = async (explicitLang?: string) => {
     const finalAnswer = explicitLang || currentTextRef.current;
     if (recognitionRef.current) recognitionRef.current.abort();
-    
+
     const currentStep = stepRef.current;
-    
+
     if (currentStep === -1) {
-       const detectedLang = parseUserLanguage(finalAnswer);
-       
-       if (!detectedLang) {
-          setCurrentText("Language not caught clearly. Please click a button below.");
-          setIsListening(false);
-          return;
-       }
-       
-       setUserLang(detectedLang);
-       userLangRef.current = detectedLang;
-       
-       setStep(0);
-       stepRef.current = 0;
-       askQuestion(0);
-       return;
+      const detectedLang = parseUserLanguage(finalAnswer);
+
+      if (!detectedLang) {
+        setCurrentText("Language not caught clearly. Please click a button below.");
+        setIsListening(false);
+        return;
+      }
+
+      setUserLang(detectedLang);
+      userLangRef.current = detectedLang;
+
+      setStep(0);
+      stepRef.current = 0;
+      askQuestion(0);
+      return;
     }
 
     if (currentStep >= 0 && currentStep < 4) {
       const newAnswers = [...answersRef.current];
       newAnswers[currentStep] = finalAnswer || "No answer provided";
-      
+
       setAnswers(newAnswers);
       answersRef.current = newAnswers;
 
@@ -369,9 +369,9 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
   };
 
   const submitReport = async (finalAnswers: string[]) => {
-    setStep(4); 
+    setStep(4);
     setIsListening(false);
-    
+
     const combinedReport = `Voice Report Transcript:
 Language Setup: ${userLangRef.current}
 Type of emergency: ${finalAnswers[0]}
@@ -382,15 +382,15 @@ Note: Parse intelligently considering the user spoke in ${userLangRef.current}.`
 
     try {
       await axios.post(`${apiBase}/ingest`, { text: combinedReport });
-      
-      setStep(5); 
+
+      setStep(5);
       const langKey = userLangRef.current || 'english';
       const targetLang = SUCCESS_TRANSLATIONS[langKey];
-      
+
       executeSpeech(targetLang.text, targetLang.lang, () => {
         setTimeout(onClose, 3000);
       });
-      
+
     } catch (e) {
       console.error("Voice report submission failed", e);
       executeSpeech("Sorry, there was an error submitting your report. Please try again.", 'en-US');
@@ -403,7 +403,7 @@ Note: Parse intelligently considering the user spoke in ${userLangRef.current}.`
   return (
     <div className="fixed inset-0 z-[4000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-[#0b1120] border border-blue-500/30 rounded-2xl w-full max-w-lg shadow-[0_0_50px_rgba(59,130,246,0.15)] overflow-hidden flex flex-col relative animate-slide-in">
-        
+
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-white/[0.05]">
           <div className="flex items-center gap-3 text-indigo-400 font-bold">
@@ -416,7 +416,7 @@ Note: Parse intelligently considering the user spoke in ${userLangRef.current}.`
             )}
           </div>
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={() => {
                 const newMuted = !isMuted;
                 setIsMuted(newMuted);
@@ -438,17 +438,17 @@ Note: Parse intelligently considering the user spoke in ${userLangRef.current}.`
 
         {/* Content Body */}
         <div className="p-8 flex flex-col items-center justify-center min-h-[300px] text-center relative">
-          
+
           {/* Circular Animation Area */}
           <div className="relative flex justify-center items-center w-32 h-32 mb-8">
             {isListening && (
-               <>
-                 <div className="absolute inset-0 border-[4px] border-blue-500/20 rounded-full animate-pulse-ring"></div>
-                 <div className="absolute inset-0 border-[4px] border-blue-500/10 rounded-full animate-pulse-ring" style={{ animationDelay: '0.4s' }}></div>
-               </>
+              <>
+                <div className="absolute inset-0 border-[4px] border-blue-500/20 rounded-full animate-pulse-ring"></div>
+                <div className="absolute inset-0 border-[4px] border-blue-500/10 rounded-full animate-pulse-ring" style={{ animationDelay: '0.4s' }}></div>
+              </>
             )}
             <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 ${isListening ? 'bg-blue-600 shadow-[0_0_30px_rgba(37,99,235,0.6)] scale-110' : isSpeaking ? 'bg-indigo-600 animate-pulse' : 'bg-slate-800'}`}>
-               {step === 5 ? <CheckCircleIcon className="w-10 h-10 text-white" /> : <MicrophoneIcon className={`w-10 h-10 text-white ${isListening ? 'animate-bounce' : ''}`} />}
+              {step === 5 ? <CheckCircleIcon className="w-10 h-10 text-white" /> : <MicrophoneIcon className={`w-10 h-10 text-white ${isListening ? 'animate-bounce' : ''}`} />}
             </div>
           </div>
 
@@ -458,67 +458,67 @@ Note: Parse intelligently considering the user spoke in ${userLangRef.current}.`
           )}
 
           {step === -1 && (
-             <div className="w-full flex justify-center flex-col items-center">
-                <span className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-3">Language Selection</span>
-                <p className="text-lg font-medium text-white mb-6 leading-relaxed">
-                   Which language are you comfortable in answering? Please say English, Hindi, Marathi, Tamil, Bengali, or Telugu.
-                </p>
-                <div className="h-16 w-full flex items-center justify-center italic text-blue-300 font-medium bg-blue-500/5 rounded-lg border border-blue-500/10 px-4 mb-4">
-                  {isListening ? (currentText || "Listening...") : (isSpeaking ? "Speaking..." : "Please wait...")}
-                </div>
-                {/* Failsafe Manual Selector - Always visible to prevent being stuck */}
-                <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-                     {['English', 'Hindi', 'Marathi', 'Tamil', 'Bengali', 'Telugu'].map(lang => (
-                       <button
-                         key={lang}
-                         onClick={() => handleNext(lang)}
-                         className="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600/20 hover:bg-blue-500/40 border border-blue-500/30 text-blue-200 transition-colors"
-                       >
-                         {lang}
-                       </button>
-                     ))}
+            <div className="w-full flex justify-center flex-col items-center">
+              <span className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-3">Language Selection</span>
+              <p className="text-lg font-medium text-white mb-6 leading-relaxed">
+                Which language are you comfortable in answering? Please say English, Hindi, Marathi, Tamil, Bengali, or Telugu.
+              </p>
+              <div className="h-16 w-full flex items-center justify-center italic text-blue-300 font-medium bg-blue-500/5 rounded-lg border border-blue-500/10 px-4 mb-4">
+                {isListening ? (currentText || "Listening...") : (isSpeaking ? "Speaking..." : "Please wait...")}
               </div>
-             </div>
+              {/* Failsafe Manual Selector - Always visible to prevent being stuck */}
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                {['English', 'Hindi', 'Marathi', 'Tamil', 'Bengali', 'Telugu'].map(lang => (
+                  <button
+                    key={lang}
+                    onClick={() => handleNext(lang)}
+                    className="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600/20 hover:bg-blue-500/40 border border-blue-500/30 text-blue-200 transition-colors"
+                  >
+                    {lang}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
 
           {step >= 0 && step < 4 && (
-             <div className="w-full flex justify-center flex-col items-center">
-                <span className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-3">Question {step + 1} of 4</span>
-                <p className="text-lg font-medium text-white mb-6 leading-relaxed">
-                   {LOCALIZED_QUESTIONS[userLang][step]}
-                </p>
-                <div className="h-16 w-full flex items-center justify-center italic text-blue-300 font-medium bg-blue-500/5 rounded-lg border border-blue-500/10 px-4">
-                  {isListening ? (currentText || "Listening...") : (isSpeaking ? "Speaking..." : "Please wait...")}
-                </div>
-             </div>
+            <div className="w-full flex justify-center flex-col items-center">
+              <span className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-3">Question {step + 1} of 4</span>
+              <p className="text-lg font-medium text-white mb-6 leading-relaxed">
+                {LOCALIZED_QUESTIONS[userLang][step]}
+              </p>
+              <div className="h-16 w-full flex items-center justify-center italic text-blue-300 font-medium bg-blue-500/5 rounded-lg border border-blue-500/10 px-4">
+                {isListening ? (currentText || "Listening...") : (isSpeaking ? "Speaking..." : "Please wait...")}
+              </div>
+            </div>
           )}
 
           {step === 4 && (
-             <div className="flex flex-col items-center">
-                <span className="text-indigo-400 mb-2 font-medium">Processing Audio...</span>
-                <p className="text-gray-400 text-sm">Transmitting to AI engine</p>
-             </div>
+            <div className="flex flex-col items-center">
+              <span className="text-indigo-400 mb-2 font-medium">Processing Audio...</span>
+              <p className="text-gray-400 text-sm">Transmitting to AI engine</p>
+            </div>
           )}
 
           {step === 5 && (
-             <div className="flex flex-col items-center animate-fade-in">
-                <p className="text-2xl font-bold text-green-400 mb-2">Report Submitted</p>
-                <p className="text-gray-400 leading-relaxed max-w-[280px]">Help is being coordinated. Stay safe.</p>
-             </div>
+            <div className="flex flex-col items-center animate-fade-in">
+              <p className="text-2xl font-bold text-green-400 mb-2">Report Submitted</p>
+              <p className="text-gray-400 leading-relaxed max-w-[280px]">Help is being coordinated. Stay safe.</p>
+            </div>
           )}
 
         </div>
 
         {/* Footer Actions - Always show Skip/Next if speaking hangs */}
         {step >= -1 && step < 4 && (
-           <div className="p-4 bg-white/[0.02] border-t border-white/[0.05] flex justify-between items-center">
-             <div className="text-[10px] text-white/20 italic">
-               Tip: You can click the language buttons directly if audio is muted.
-             </div>
-             <button onClick={() => { synthRef.current.cancel(); setIsSpeaking(false); handleNext(); }} className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-medium transition-colors">
-                Skip / Next <ArrowRightIcon className="w-4 h-4" />
-             </button>
-           </div>
+          <div className="p-4 bg-white/[0.02] border-t border-white/[0.05] flex justify-between items-center">
+            <div className="text-[10px] text-white/20 italic">
+              Tip: You can click the language buttons directly if audio is muted.
+            </div>
+            <button onClick={() => { synthRef.current.cancel(); setIsSpeaking(false); handleNext(); }} className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-medium transition-colors">
+              Skip / Next <ArrowRightIcon className="w-4 h-4" />
+            </button>
+          </div>
         )}
       </div>
     </div>
