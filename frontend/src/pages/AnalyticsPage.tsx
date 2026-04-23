@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import PredictionsSection from '../components/PredictionsSection';
 
 export default function AnalyticsPage() {
   const [crises, setCrises] = useState<any[]>([]);
@@ -70,6 +71,8 @@ export default function AnalyticsPage() {
   return (
     <div className="h-full bg-[#070B14] p-6 overflow-y-auto custom-scrollbar">
       <h1 className="text-[1.6rem] font-bold text-white mb-8">Analytics Overview</h1>
+
+      <PredictionsSection />
 
       {/* KPI Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

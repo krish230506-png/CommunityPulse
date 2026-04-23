@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet.heat';
 import { formatDistanceToNow, differenceInMinutes, format } from 'date-fns';
-import { BoltIcon, ExclamationTriangleIcon, PaperAirplaneIcon, SignalIcon, SignalSlashIcon, MicrophoneIcon, StopCircleIcon, BellAlertIcon } from '@heroicons/react/24/outline';
+import { BoltIcon, ExclamationTriangleIcon, PaperAirplaneIcon, SignalIcon, SignalSlashIcon, MicrophoneIcon, StopCircleIcon, BellAlertIcon, PhoneIcon } from '@heroicons/react/24/outline';
 import { saveOfflineReport, syncOfflineReports, clearOfflineQueue } from './offlineSync';
 
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
@@ -14,6 +14,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import HistoryPage from './pages/HistoryPage';
 import AiAssistantPage from './pages/AiAssistantPage';
 import VoiceAssistant from './components/VoiceAssistant';
+import PredictionAlertBar from './components/PredictionAlertBar';
 
 const API_BASE = 'http://localhost:3000';
 
@@ -105,6 +106,23 @@ export default function App() {
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Prediction State
+  const [predictions, setPredictions] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchPredictions = async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/api/predictions`);
+        setPredictions(res.data.predictions || []);
+      } catch (err) {
+        console.error('Error fetching predictions for map:', err);
+      }
+    };
+    fetchPredictions();
+    const interval = setInterval(fetchPredictions, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -446,6 +464,8 @@ export default function App() {
         </div>
       )}
 
+      <PredictionAlertBar />
+
       <main className="flex-1 grid grid-cols-12 gap-6 h-full overflow-hidden box-border min-h-0">
         
         {/* PANEL 1: Live Ingestion Feed */}
@@ -601,8 +621,52 @@ export default function App() {
                   }}
                 />
               ))}
+
+              {/* Predicted Risk Zones */}
+              {predictions.map((p, idx) => {
+                const cityMap: Record<string, [number, number]> = {
+                  'Mumbai': [19.0760, 72.8777],
+                  'Delhi': [28.6139, 77.2090],
+                  'Bengaluru': [12.9716, 77.5946],
+                  'Chennai': [13.0827, 80.2707],
+                  'Kolkata': [22.5726, 88.3639],
+                  'Hyderabad': [17.3850, 78.4867]
+                };
+                const coords = cityMap[p.city] || center;
+                return (
+                  <Circle
+                    key={`pred-${idx}`}
+                    center={coords}
+                    radius={1500}
+                    pathOptions={{ 
+                      color: '#f97316', 
+                      fillColor: '#f97316',
+                      fillOpacity: 0.1,
+                      dashArray: '5, 10',
+                      weight: 1
+                    }}
+                    className="animate-pulse-prediction"
+                  />
+                );
+              })}
               <HeatmapOverlay data={heatmapData} />
             </MapContainer>
+
+            {/* Map Legend */}
+            <div className="absolute bottom-4 left-4 z-[1000] bg-[rgba(7,11,20,0.85)] backdrop-blur-md px-3 py-2 rounded-lg border border-white/10 shadow-2xl flex items-center space-x-4 text-[10px] font-bold uppercase tracking-wider">
+              <div className="flex items-center">
+                <span className="w-2 h-2 rounded-full bg-[#EF4444] mr-2"></span>
+                <span className="text-white/80">🔴 Active Crisis</span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-2 h-2 rounded-full bg-[#f97316] mr-2 animate-pulse"></span>
+                <span className="text-white/80">🟠 Predicted Risk</span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-2 h-2 rounded-full bg-[#6B7280] mr-2"></span>
+                <span className="text-white/80">⚫ Resolved</span>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -812,10 +876,15 @@ export default function App() {
                 {/* Voice Assistant Navigation Trigger */}
                 <button 
                   onClick={() => setIsVoiceOpen(true)}
-                  className="bg-gradient-to-r from-[#00bcd4]/10 to-[#1a237e]/30 hover:from-[#00bcd4]/30 hover:to-[#1a237e]/50 border border-[#00bcd4]/40 hover:shadow-[0_0_15px_rgba(0,188,212,0.4)] text-[#00bcd4] px-3 py-1 rounded-full text-[10px] font-bold transition-all duration-300 flex items-center h-7"
+                  className="bg-gradient-to-r from-[#00bcd4]/10 to-[#1a237e]/30 hover:from-[#00bcd4]/30 hover:to-[#1a237e]/50 border border-[#00bcd4]/40 hover:shadow-[0_0_15px_rgba(0,188,212,0.4)] text-[#00bcd4] px-3 py-1 rounded-full text-[10px] font-bold transition-all duration-300 flex items-center h-7 hover-ring-shake"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 mr-2 animate-pulse shadow-[0_0_5px_#4ade80]"></span>
-                  <MicrophoneIcon className="w-3 h-3 mr-1.5" /> Voice Reporter
+                  <div className="relative mr-2 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-green-500 rounded-full animate-ripple opacity-40"></div>
+                    <div className="relative w-3 h-3 bg-green-400 rounded-full animate-phone-ring shadow-[0_0_5px_#4ade80] flex items-center justify-center z-10">
+                       <PhoneIcon className="w-2 h-2 text-white phone-icon" />
+                    </div>
+                  </div>
+                  Voice Reporter
                 </button>
 
                 {/* Simulate Crisis Trigger */}

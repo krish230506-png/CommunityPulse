@@ -429,6 +429,33 @@ app.post('/chat', async (req, res) => {
   }
 });
 
+// Predictive Intelligence Logic
+let cachedPredictions: any[] = [];
+let lastPredictionTimestamp = 0;
+
+async function updatePredictions() {
+  try {
+    const needs = await db.getAllNeeds();
+    const predictions = await AIService.getPredictions(needs);
+    cachedPredictions = predictions;
+    lastPredictionTimestamp = Date.now();
+    console.log('⚡ Predictive Intelligence updated.');
+  } catch (error) {
+    console.error('Failed to update predictions:', error);
+  }
+}
+
+// Initial update and 90s interval
+updatePredictions();
+setInterval(updatePredictions, 90000);
+
+app.get('/api/predictions', (req, res) => {
+  res.json({
+    predictions: cachedPredictions,
+    lastUpdated: lastPredictionTimestamp
+  });
+});
+
 app.listen(port, () => {
   console.log(`Backend listening on port ${port}`);
 });

@@ -107,3 +107,64 @@ h1, h2, h3, h4, h5, h6, button, span, label, div {
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out forwards;
 }
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+@keyframes pulse-orange {
+  0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(249, 115, 22, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+}
+
+.animate-pulse-red {
+  animation: pulse-red 2s infinite;
+}
+
+.animate-pulse-orange {
+  animation: pulse-orange 2s infinite;
+}
+
+@keyframes pulse-prediction {
+  0% { fill-opacity: 0.1; stroke-width: 1px; }
+  50% { fill-opacity: 0.3; stroke-width: 3px; }
+  100% { fill-opacity: 0.1; stroke-width: 1px; }
+}
+
+.animate-pulse-prediction {
+  animation: pulse-prediction 3s ease-in-out infinite;
+}
+
+@keyframes phone-ring-pulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+@keyframes ripple-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+@keyframes ring-shake {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(3deg); }
+  50% { transform: rotate(0deg); }
+  75% { transform: rotate(-3deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.animate-phone-ring {
+  animation: phone-ring-pulse 1.5s infinite ease-in-out;
+}
+
+.animate-ripple {
+  animation: ripple-pulse 2s infinite;
+}
+
+.hover-ring-shake:hover .phone-icon {
+  animation: ring-shake 0.3s infinite ease-in-out;
+}
