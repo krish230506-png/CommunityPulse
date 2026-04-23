@@ -902,13 +902,33 @@ export default function App() {
         </div>
 
         {/* UN SDGs Addressed */}
-        <div className="p-4 border-t border-white/[0.06] pb-6">
-           <p className="font-semibold text-[0.65rem] text-[#8B9CB8] uppercase tracking-wider mb-3">UN SDGs Addressed</p>
-           <div className="flex gap-2">
-              <div className="flex items-center justify-center w-7 h-7 rounded shadow-md bg-[#E5243B] text-white font-bold text-xs" title="SDG 1: No Poverty">1</div>
-              <div className="flex items-center justify-center w-7 h-7 rounded shadow-md bg-[#4C9F38] text-white font-bold text-xs" title="SDG 3: Good Health and Well-being">3</div>
-              <div className="flex items-center justify-center w-7 h-7 rounded shadow-md bg-[#FD9D24] text-white font-bold text-xs" title="SDG 11: Sustainable Cities and Communities">11</div>
-              <div className="flex items-center justify-center w-7 h-7 rounded shadow-md bg-[#3F7E44] text-white font-bold text-xs" title="SDG 13: Climate Action">13</div>
+        <div className="p-4 border-t border-white/[0.06] pb-8">
+           <p className="font-semibold text-[0.65rem] text-[#8B9CB8] uppercase tracking-[0.15em] mb-4">Humanitarian Impact</p>
+           <div className="flex flex-wrap gap-3">
+              {[
+                { id: 1, name: "No Poverty", color: "#E5243B" },
+                { id: 3, name: "Health & Well-being", color: "#4C9F38" },
+                { id: 11, name: "Sustainable Cities", color: "#FD9D24" },
+                { id: 13, name: "Climate Action", color: "#3F7E44" }
+              ].map(sdg => (
+                <div 
+                  key={sdg.id}
+                  className="relative group flex items-center justify-center w-9 h-9 rounded-lg shadow-lg text-white font-black text-sm transition-all duration-300 hover:scale-110 cursor-default"
+                  style={{ backgroundColor: sdg.color }}
+                >
+                  {sdg.id}
+                  
+                  {/* Premium Styled Tooltip - Positioned TOP to avoid overlap */}
+                  <div className="absolute bottom-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 translate-y-2 group-hover:translate-y-0 z-[5000] whitespace-nowrap">
+                    <div className="bg-[#1e293b] text-white text-[11px] font-bold px-3 py-2 rounded-xl border border-white/20 shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-2">
+                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: sdg.color }}></div>
+                       {sdg.name}
+                    </div>
+                    {/* Tooltip Arrow */}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#1e293b]"></div>
+                  </div>
+                </div>
+              ))}
            </div>
         </div>
       </div>
@@ -948,7 +968,12 @@ export default function App() {
                ) : (
                  <span className="flex items-center text-red-400 bg-red-500/10 px-2 py-1 rounded-full text-xs font-bold border border-red-500/20"><SignalSlashIcon className="w-3 h-3 mr-1" /> Offline</span>
                )}
-               <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-xs text-white shadow shadow-blue-500/20 border border-blue-400/30">AD</div>
+                <div 
+                  className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center font-black text-[10px] text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] border border-blue-400/30 cursor-pointer hover:scale-105 transition-all"
+                  title="Administrator Profile"
+                >
+                  ADMIN
+                </div>
             </div>
          </div>
          

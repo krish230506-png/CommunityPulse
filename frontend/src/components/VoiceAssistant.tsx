@@ -201,6 +201,8 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
     setIsSpeaking(false);
   };
 
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
   const executeSpeech = (text: string, lang = 'en-US', onComplete?: () => void) => {
     if (isMuted) {
       if (onComplete) onComplete();
@@ -209,7 +211,11 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
 
     setIsSpeaking(true);
     synthRef.current.cancel();
+
+    // FIXED: Storing in a ref prevents garbage collection cut-offs mid-speech
     const utterance = new SpeechSynthesisUtterance(text);
+    currentUtteranceRef.current = utterance; 
+    
     utterance.lang = lang;
     utterance.rate = 1.0;
     
@@ -233,18 +239,20 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
         setIsSpeaking(false);
         if (onComplete) onComplete();
       }
-    }, 10000); 
+    }, 12000); // Slightly more patience for longer strings
     
     utterance.onend = () => {
       if (isCanceled) return;
       clearTimeout(timeout);
       setIsSpeaking(false);
+      currentUtteranceRef.current = null;
       if (onComplete) onComplete();
     };
     
     utterance.onerror = (e) => {
        if ((e as any).error === 'canceled') isCanceled = true;
        clearTimeout(timeout);
+       currentUtteranceRef.current = null;
     };
     
     setTimeout(() => {
@@ -253,12 +261,13 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
   };
 
   const speakGreeting = () => {
+    // Increased fallback to 5s to ensure welcome finishes
     const fallback = setTimeout(() => {
       if (stepRef.current === -2) {
         setStep(-1);
         askLanguage();
       }
-    }, 3000);
+    }, 5000);
 
     executeSpeech(
       "Namaste. Welcome to CommunityPulse Emergency Reporter.",
