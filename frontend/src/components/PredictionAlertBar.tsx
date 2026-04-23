@@ -1,34 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import type { Prediction } from '../types';
 
-interface Prediction {
-  city: string;
-  predictedCrisisType: string;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  recommendedPreventiveAction: string;
+interface PredictionAlertBarProps {
+  predictions: Prediction[];
 }
 
-const PredictionAlertBar: React.FC = () => {
+const PredictionAlertBar: React.FC<PredictionAlertBarProps> = ({ predictions }) => {
   const [highRiskPrediction, setHighRiskPrediction] = useState<Prediction | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    const fetchPredictions = async () => {
-      try {
-        const res = await axios.get('http://localhost:3000/api/predictions');
-        const highRisk = res.data.predictions.find(
-          (p: Prediction) => p.riskLevel === 'HIGH' || p.riskLevel === 'CRITICAL'
-        );
-        setHighRiskPrediction(highRisk || null);
-      } catch (error) {
-        console.error('Error fetching prediction alert:', error);
-      }
-    };
-
-    fetchPredictions();
-    const interval = setInterval(fetchPredictions, 90000);
-    return () => clearInterval(interval);
-  }, []);
+    if (!predictions || predictions.length === 0) {
+      Promise.resolve().then(() => setHighRiskPrediction(null));
+      return;
+    }
+    const highRisk = predictions.find(
+      (p: Prediction) => p.riskLevel === 'HIGH' || p.riskLevel === 'CRITICAL'
+    );
+    // Push to next tick to avoid synchronous cascading render warning
+    Promise.resolve().then(() => setHighRiskPrediction(highRisk || null));
+  }, [predictions]);
 
   if (!highRiskPrediction || dismissed) return null;
 

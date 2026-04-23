@@ -32,3 +32,12 @@ export interface VolunteerProfile {
   lastDispatchedAt?: number;
   pastContributions: string[];
 }
+export interface Prediction {
+  city: string;
+  predictedCrisisType: string;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  recommendedPreventiveAction: string;
+  lat?: number;
+  lng?: number;
+  riskScore?: number;
+}

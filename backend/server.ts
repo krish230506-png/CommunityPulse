@@ -26,7 +26,7 @@ process.on('uncaughtException', (err) => {
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Smart local keyword extractor — used as fallback when Gemini quota is exhausted
-function smartLocalExtract(text: string): Partial<any> {
+function smartLocalExtract(text: string): Partial<any> | null {
   const t = text.toLowerCase();
 
   // Crisis type detection
@@ -36,6 +36,7 @@ function smartLocalExtract(text: string): Partial<any> {
   else if (/shelter|tent|roof|homeless|displaced|house|stay|live/.test(t)) crisisType = 'shelter';
   else if (/road|bridge|sinkhole|collapse|building|debris|rubble|infra|crack|falling/.test(t)) crisisType = 'infrastructure';
   else if (/fire|medical|doctor|hospital|injured|ambulance|sick|hurt|trapped|blood|patient|emergency/.test(t)) crisisType = 'medical';
+  else return null; // No crisis type found
 
   // Location detection (Mumbai landmarks)
   const locationMap: Record<string, { lat: number; lng: number }> = {
@@ -192,7 +193,7 @@ function smartLocalExtract(text: string): Partial<any> {
   };
 
   let locationName = 'Mumbai Metropolitan Area';
-  let coords = { lat: 19.0760, lng: 72.8777 };
+  let coords = null;
   for (const [key, val] of Object.entries(locationMap)) {
     if (t.includes(key)) {
       locationName = key.replace(/\b\w/g, c => c.toUpperCase());
@@ -200,6 +201,8 @@ function smartLocalExtract(text: string): Partial<any> {
       break;
     }
   }
+
+  if (!coords) return null; // No location found
 
   // Scale detection
   const scaleMatch = t.match(/(\d+)\s*(people|person|family|families|victims|residents)/);
@@ -260,7 +263,7 @@ app.post('/ingest', upload.single('image'), async (req, res) => {
   try {
     const rawText = req.body.text || '';
     console.log('📥 Incoming Ingest Request. Text:', rawText.substring(0, 50) + '...');
-    
+
     let base64Image: string | undefined;
     if (req.file) {
       base64Image = req.file.buffer.toString('base64');
@@ -277,18 +280,49 @@ app.post('/ingest', upload.single('image'), async (req, res) => {
     try {
       console.log('🤖 Calling Gemini AI for extraction...');
       extractedData = await AIService.extractNeed(rawText, base64Image);
-      
+
+
+      // 🔴 ADD THIS BLOCK RIGHT HERE
+      if (extractedData) {
+        const meaningfulKeywords = /flood|water|rain|fire|medical|food|shelter|infrastructure|earthquake|accident|emergency|injured|collapse|relief|rescue|trapped|crisis|help|hurt|damage|disaster|death|wound|burn|drown|starv|sick|hospital|ambulance/i;
+
+        const hasLocation = extractedData.location?.lat && extractedData.location?.lng;
+        const hasKeyword = meaningfulKeywords.test(rawText || '');
+        const hasMinLength = (rawText || '').trim().split(' ').length >= 3;
+
+        if (!hasKeyword && !base64Image && hasMinLength === false) {
+          return res.status(422).json({
+            error: 'Signal unclear — could not extract crisis data. Please add more detail: location, type, or scale.'
+          });
+        }
+
+        if (!hasKeyword && !base64Image && !hasLocation) {
+          return res.status(422).json({
+            error: 'Signal unclear — could not extract crisis data. Please add more detail: location, type, or scale.'
+          });
+        }
+      }
+      // 🔴 END BLOCK
+
       if (!extractedData || !extractedData.crisisType || !extractedData.location) {
         throw new Error('Incomplete data from AI');
       }
     } catch (e) {
-      console.warn('⚠️ Gemini unavailable or network error — using smart local extraction for demo.');
+      console.warn('⚠️ Gemini unavailable or network error — trying smart local extraction.');
       extractedData = smartLocalExtract(rawText || 'emergency signal');
+      if (extractedData) {
+        (extractedData as any).isLocal = true;
+      }
+    }
+
+    if (!extractedData) {
+      console.warn('⚠️ Rejected: Signal unclear — could not extract crisis data.');
+      return res.status(422).json({ error: 'Signal unclear — could not extract crisis data. Please add more detail: location, type, or scale.' });
     }
 
     // Prepare full entity
     const locationStr = `${extractedData.crisisType} ${extractedData.location?.name || 'Unknown'} ${extractedData.urgencyReasoning}`;
-    
+
     // 2. Generate Embedding (graceful fallback if quota hit)
     let embedding: number[];
     try {
@@ -300,10 +334,10 @@ app.post('/ingest', upload.single('image'), async (req, res) => {
 
     const newNeed: NeedEntity = {
       id: crypto.randomUUID(),
-      location: { 
-        name: extractedData.location?.name || 'Unknown Location', 
-        lat: extractedData.location?.lat || 19.0760, 
-        lng: extractedData.location?.lng || 72.8777 
+      location: {
+        name: extractedData.location?.name || 'Unknown Location',
+        lat: extractedData.location?.lat || 19.0760,
+        lng: extractedData.location?.lng || 72.8777
       },
       crisisType: (extractedData.crisisType || 'medical') as any,
       urgencyReasoning: extractedData.urgencyReasoning || 'Immediate assistance required.',
@@ -314,7 +348,8 @@ app.post('/ingest', upload.single('image'), async (req, res) => {
       reportedAt: Date.now(),
       rawInputs: [rawText],
       embedding,
-      originalLanguage: extractedData.originalLanguage
+      originalLanguage: extractedData.originalLanguage,
+      isLocal: (extractedData as any).isLocal || false
     };
 
     // 3. Deduplication + Velocity calculation
@@ -339,8 +374,8 @@ app.post('/ingest-audio', express.json({ limit: '10mb' }), async (req, res) => {
 
     if (!transcribedText || transcribedText.trim().length < 5) {
       console.warn('⚠️ Audio transcription returned empty or failed.');
-      return res.status(400).json({ 
-        error: 'Could not transcribe audio. Please speak clearly or type your report directly.' 
+      return res.status(400).json({
+        error: 'Could not transcribe audio. Please speak clearly or type your report directly.'
       });
     }
 
@@ -364,11 +399,11 @@ app.post('/dispatch', async (req, res) => {
     if (!need) return res.status(404).json({ error: 'Need not found' });
 
     const volunteers = await db.getVolunteers();
-    
+
     // 1. Filter out burnout and out-of-bounds volunteers
     const eligibleVolunteers = volunteers.filter(v => {
       if (v.hoursLast30Days > 20) return false; // Burnout protection
-      
+
       const dist = haversineDistance(
         need.location.lat, need.location.lng,
         v.locationCoords.lat, v.locationCoords.lng
@@ -386,12 +421,12 @@ app.post('/dispatch', async (req, res) => {
       // inverseDistance: max 1.0 (at 0 distance), approaches 0 at 5km
       const dist = haversineDistance(need.location.lat, need.location.lng, v.locationCoords.lat, v.locationCoords.lng);
       const inverseDistance = Math.max(0, 1 - (dist / 5.0));
-      
+
       // skillMatch: 1.0 if skill found, else 0.0
       const skillMatch = v.skills.includes(need.crisisType) ? 1.0 : 0.0;
-      
+
       const matchScore = (v.reliabilityRate * 0.5) + (skillMatch * 0.3) + (inverseDistance * 0.2);
-      
+
       return { volunteer: v, matchScore };
     });
 

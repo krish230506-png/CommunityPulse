@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { MicrophoneIcon, XMarkIcon, CheckCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { SparklesIcon } from '@heroicons/react/24/solid';
@@ -62,7 +62,7 @@ const SUCCESS_TRANSLATIONS: Record<string, { lang: string, text: string }> = {
   tamil: { lang: 'ta-IN', text: 'உங்கள் அறிக்கை சமர்ப்பிக்கப்பட்டது. உதவி ஒருங்கிணைக்கப்படுகிறது. நன்றி.' },
   bengali: { lang: 'bn-IN', text: 'আপনার রিপোর্ট জমা দেওয়া হয়েছে। সাহায্যের সমন্বয় করা হচ্ছে। ধন্যবাদ।' },
   telugu: { lang: 'te-IN', text: 'మీ నివేదిక సమర్పించబడింది. సహాయం సమన్వయం చేయబడుతోంది. ధన్యవాదాలు.' },
-  hindi: { lang: 'hi-IN', text: 'आपकी रिपोर्ट सबमिट कर दी गई है। सहायता समन्वित की जा रही है। धन्यवाद।' },
+  hindi: { lang: 'hi-IN', text: 'आपकी रिपोर्ट सबमिट कर दी गई है। सहायता समन्वিত की जा रही है। धन्यवाद।' },
   english: { lang: 'en-US', text: 'Your report has been submitted. Help is being coordinated. Thank you.' }
 };
 
@@ -74,11 +74,11 @@ const parseUserLanguage = (text: string): string | null => {
   if (lower.includes('bengali') || lower.includes('bangla') || lower.includes('beng')) return 'bengali';
   if (lower.includes('telugu') || lower.includes('telu')) return 'telugu';
   if (lower.includes('english') || lower.includes('eng')) return 'english';
-  return null; // Force explicit selection
+  return null;
 };
 
 export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssistantProps) {
-  const [step, setStep] = useState<number>(-2); // -2: Greeting, -1: Lang, 0-3: Questions, 4: Submitting, 5: Success
+  const [step, setStep] = useState<number>(-2);
   const [answers, setAnswers] = useState<string[]>([]);
   const [userLang, setUserLang] = useState<string>("english");
   const [currentText, setCurrentText] = useState("");
@@ -86,12 +86,13 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
   const [isListening, setIsListening] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
 
-  const recognitionRef = useRef<any>(null);
+  // Correct types for Web Speech API
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis>(window.speechSynthesis);
-  const silenceTimerRef = useRef<any>(null);
-  const maxDurationTimerRef = useRef<any>(null);
+  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const maxDurationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  // Refs to fix stale closures
   const stepRef = useRef(step);
   const answersRef = useRef(answers);
   const currentTextRef = useRef(currentText);
@@ -104,93 +105,10 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
     userLangRef.current = userLang;
   }, [step, answers, currentText, userLang]);
 
-  useEffect(() => {
-    const handleVoices = () => { };
-    window.speechSynthesis.onvoiceschanged = handleVoices;
-    return () => { window.speechSynthesis.onvoiceschanged = null; };
-  }, []);
-
-  // Initialize Speech Recognition
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = false;
-        recognitionRef.current.interimResults = true;
-        recognitionRef.current.lang = 'en-US';
-
-        recognitionRef.current.onresult = (event: any) => {
-          let interim = '';
-          let final = '';
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-              final += event.results[i][0].transcript;
-            } else {
-              interim += event.results[i][0].transcript;
-            }
-          }
-          if (final) {
-            setCurrentText(final);
-            currentTextRef.current = final;
-            if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-            handleNext(final);
-          } else {
-            setCurrentText(interim);
-            currentTextRef.current = interim;
-
-            if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-            if (interim.trim().length > 0) {
-              silenceTimerRef.current = setTimeout(() => {
-                handleNext(interim);
-              }, 2500);
-            }
-          }
-        };
-
-        recognitionRef.current.onstart = () => {
-          setIsListening(true);
-          if (maxDurationTimerRef.current) clearTimeout(maxDurationTimerRef.current);
-          maxDurationTimerRef.current = setTimeout(() => {
-            if (currentTextRef.current === "" || !currentTextRef.current) {
-              handleNext();
-            }
-          }, 15000);
-        };
-
-        recognitionRef.current.onerror = (event: any) => {
-          console.error("Speech Recognition Error", event.error);
-          setIsListening(false);
-          if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-          if (maxDurationTimerRef.current) clearTimeout(maxDurationTimerRef.current);
-        };
-
-        recognitionRef.current.onend = () => {
-          setIsListening(false);
-          if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-          if (maxDurationTimerRef.current) clearTimeout(maxDurationTimerRef.current);
-        };
-      }
-    }
-
-    return () => {
-      synthRef.current.cancel();
-      if (recognitionRef.current) recognitionRef.current.abort();
-    };
-  }, []);
-
-  // Handle flow when opened
-  useEffect(() => {
-    if (isOpen) {
-      synthRef.current.cancel();
-      synthRef.current.resume();
-      resetFlow();
-      speakGreeting();
-    } else {
-      synthRef.current.cancel();
-      if (recognitionRef.current) recognitionRef.current.abort();
-    }
-  }, [isOpen]);
+  const clearAllTimers = () => {
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    if (maxDurationTimerRef.current) clearTimeout(maxDurationTimerRef.current);
+  };
 
   const resetFlow = () => {
     setStep(-2);
@@ -201,10 +119,8 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
     setIsSpeaking(false);
   };
 
-  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-
   const executeSpeech = (text: string, lang = 'en-US', onComplete?: () => void) => {
-    if (isMuted) {
+    if (isMuted || !isOpen) {
       if (onComplete) onComplete();
       return;
     }
@@ -212,10 +128,8 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
     setIsSpeaking(true);
     synthRef.current.cancel();
 
-    // FIXED: Storing in a ref prevents garbage collection cut-offs mid-speech
     const utterance = new SpeechSynthesisUtterance(text);
     currentUtteranceRef.current = utterance;
-
     utterance.lang = lang;
     utterance.rate = 1.0;
 
@@ -239,7 +153,7 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
         setIsSpeaking(false);
         if (onComplete) onComplete();
       }
-    }, 12000); // Slightly more patience for longer strings
+    }, 12000);
 
     utterance.onend = () => {
       if (isCanceled) return;
@@ -249,8 +163,8 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
       if (onComplete) onComplete();
     };
 
-    utterance.onerror = (e) => {
-      if ((e as any).error === 'canceled') isCanceled = true;
+    utterance.onerror = (event) => {
+      if (event.error === 'canceled') isCanceled = true;
       clearTimeout(timeout);
       currentUtteranceRef.current = null;
     };
@@ -260,8 +174,33 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
     }, 50);
   };
 
+  const startListening = () => {
+    if (!isOpen) return;
+    if (recognitionRef.current) {
+      setCurrentText("");
+      currentTextRef.current = "";
+      setIsListening(true);
+      try {
+        recognitionRef.current.start();
+      } catch (e) {
+        console.debug('Recognition start failed:', e);
+      }
+    }
+  };
+
+  const askLanguage = () => {
+    setCurrentText("");
+    executeSpeech(
+      "Which language are you comfortable in answering? Please say English, Hindi, Marathi, Tamil, Bengali, or Telugu.",
+      'en-IN',
+      () => {
+        if (recognitionRef.current) recognitionRef.current.lang = 'en-IN';
+        startListening();
+      }
+    );
+  };
+
   const speakGreeting = () => {
-    // Increased fallback to 5s to ensure welcome finishes
     const fallback = setTimeout(() => {
       if (stepRef.current === -2) {
         setStep(-1);
@@ -282,90 +221,19 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
     );
   };
 
-  const askLanguage = () => {
-    setCurrentText("");
-    executeSpeech(
-      "Which language are you comfortable in answering? Please say English, Hindi, Marathi, Tamil, Bengali, or Telugu.",
-      'en-IN',
-      () => {
-        if (recognitionRef.current) recognitionRef.current.lang = 'en-IN';
-        startListening();
-      }
-    );
-  };
-
   const askQuestion = (idx: number) => {
     setCurrentText("");
-
     const langKey = userLangRef.current || 'english';
     const questionText = LOCALIZED_QUESTIONS[langKey][idx];
     const synthLang = LANG_CONFIG[langKey].code;
 
     if (recognitionRef.current) {
-      if (idx === 2) {
-        recognitionRef.current.lang = 'en-IN';
-      } else {
-        recognitionRef.current.lang = synthLang;
-      }
+      recognitionRef.current.lang = (idx === 2) ? 'en-IN' : synthLang;
     }
 
     executeSpeech(questionText, synthLang, () => {
       startListening();
     });
-  };
-
-  const startListening = () => {
-    if (recognitionRef.current) {
-      setCurrentText("");
-      currentTextRef.current = "";
-      setIsListening(true);
-      try {
-        recognitionRef.current.start();
-      } catch (e) { }
-    }
-  };
-
-  const handleNext = async (explicitLang?: string) => {
-    const finalAnswer = explicitLang || currentTextRef.current;
-    if (recognitionRef.current) recognitionRef.current.abort();
-
-    const currentStep = stepRef.current;
-
-    if (currentStep === -1) {
-      const detectedLang = parseUserLanguage(finalAnswer);
-
-      if (!detectedLang) {
-        setCurrentText("Language not caught clearly. Please click a button below.");
-        setIsListening(false);
-        return;
-      }
-
-      setUserLang(detectedLang);
-      userLangRef.current = detectedLang;
-
-      setStep(0);
-      stepRef.current = 0;
-      askQuestion(0);
-      return;
-    }
-
-    if (currentStep >= 0 && currentStep < 4) {
-      const newAnswers = [...answersRef.current];
-      newAnswers[currentStep] = finalAnswer || "No answer provided";
-
-      setAnswers(newAnswers);
-      answersRef.current = newAnswers;
-
-      const nextStep = currentStep + 1;
-      setStep(nextStep);
-      stepRef.current = nextStep;
-
-      if (nextStep < 4) {
-        askQuestion(nextStep);
-      } else {
-        submitReport(newAnswers);
-      }
-    }
   };
 
   const submitReport = async (finalAnswers: string[]) => {
@@ -382,7 +250,6 @@ Note: Parse intelligently considering the user spoke in ${userLangRef.current}.`
 
     try {
       await axios.post(`${apiBase}/ingest`, { text: combinedReport });
-
       setStep(5);
       const langKey = userLangRef.current || 'english';
       const targetLang = SUCCESS_TRANSLATIONS[langKey];
@@ -390,13 +257,133 @@ Note: Parse intelligently considering the user spoke in ${userLangRef.current}.`
       executeSpeech(targetLang.text, targetLang.lang, () => {
         setTimeout(onClose, 3000);
       });
-
     } catch (e) {
       console.error("Voice report submission failed", e);
       executeSpeech("Sorry, there was an error submitting your report. Please try again.", 'en-US');
       setTimeout(onClose, 4000);
     }
   };
+
+  const handleNext = async (explicitLang?: string) => {
+    const finalAnswer = explicitLang || currentTextRef.current;
+    if (recognitionRef.current) recognitionRef.current.abort();
+
+    const currentStep = stepRef.current;
+
+    if (currentStep === -1) {
+      const detectedLang = parseUserLanguage(finalAnswer);
+      if (!detectedLang) {
+        setCurrentText("Language not caught clearly. Please click a button below.");
+        setIsListening(false);
+        return;
+      }
+      setUserLang(detectedLang);
+      userLangRef.current = detectedLang;
+      setStep(0);
+      stepRef.current = 0;
+      askQuestion(0);
+      return;
+    }
+
+    if (currentStep >= 0 && currentStep < 4) {
+      const newAnswers = [...answersRef.current];
+      newAnswers[currentStep] = finalAnswer || "No answer provided";
+      setAnswers(newAnswers);
+      answersRef.current = newAnswers;
+      const nextStep = currentStep + 1;
+      setStep(nextStep);
+      stepRef.current = nextStep;
+
+      if (nextStep < 4) {
+        askQuestion(nextStep);
+      } else {
+        submitReport(newAnswers);
+      }
+    }
+  };
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event: any) => {
+          let interim = '';
+          let final = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              final += event.results[i][0].transcript;
+            } else {
+              interim += event.results[i][0].transcript;
+            }
+          }
+          if (final) {
+            setCurrentText(final);
+            currentTextRef.current = final;
+            if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+            handleNext(final);
+          } else {
+            setCurrentText(interim);
+            currentTextRef.current = interim;
+            if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+            if (interim.trim().length > 0) {
+              silenceTimerRef.current = setTimeout(() => {
+                handleNext(interim);
+              }, 2500);
+            }
+          }
+        };
+
+        recognition.onstart = () => {
+          setIsListening(true);
+          if (maxDurationTimerRef.current) clearTimeout(maxDurationTimerRef.current);
+          maxDurationTimerRef.current = setTimeout(() => {
+            if (currentTextRef.current === "" || !currentTextRef.current) {
+              handleNext();
+            }
+          }, 15000);
+        };
+
+        recognition.onerror = (event: any) => {
+          console.error("Speech Recognition Error", event.error);
+          setIsListening(false);
+          clearAllTimers();
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+          clearAllTimers();
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+
+    const currentSynth = synthRef.current;
+    return () => {
+      currentSynth.cancel();
+      if (recognitionRef.current) recognitionRef.current.abort();
+    };
+  }, []); // handleNext is a ref-based function now effectively, but we'll leave it as is for stability
+
+  // Handle flow when opened
+  useEffect(() => {
+    if (isOpen) {
+      synthRef.current.cancel();
+      synthRef.current.resume();
+      resetFlow();
+      speakGreeting();
+    } else {
+      synthRef.current.cancel();
+      if (recognitionRef.current) recognitionRef.current.abort();
+      clearAllTimers();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -430,7 +417,12 @@ Note: Parse intelligently considering the user spoke in ${userLangRef.current}.`
             >
               {isMuted ? <span className="text-xs">🔇</span> : <span className="text-xs">🔊</span>}
             </button>
-            <button onClick={() => { synthRef.current.cancel(); if (recognitionRef.current) recognitionRef.current.abort(); onClose(); }} className="text-white/40 hover:text-white transition-colors">
+            <button onClick={() => { 
+              synthRef.current.cancel(); 
+              if (recognitionRef.current) recognitionRef.current.abort(); 
+              clearAllTimers();
+              onClose(); 
+            }} className="text-white/40 hover:text-white transition-colors">
               <XMarkIcon className="w-6 h-6" />
             </button>
           </div>
@@ -466,7 +458,6 @@ Note: Parse intelligently considering the user spoke in ${userLangRef.current}.`
               <div className="h-16 w-full flex items-center justify-center italic text-blue-300 font-medium bg-blue-500/5 rounded-lg border border-blue-500/10 px-4 mb-4">
                 {isListening ? (currentText || "Listening...") : (isSpeaking ? "Speaking..." : "Please wait...")}
               </div>
-              {/* Failsafe Manual Selector - Always visible to prevent being stuck */}
               <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
                 {['English', 'Hindi', 'Marathi', 'Tamil', 'Bengali', 'Telugu'].map(lang => (
                   <button
@@ -509,7 +500,6 @@ Note: Parse intelligently considering the user spoke in ${userLangRef.current}.`
 
         </div>
 
-        {/* Footer Actions - Always show Skip/Next if speaking hangs */}
         {step >= -1 && step < 4 && (
           <div className="p-4 bg-white/[0.02] border-t border-white/[0.05] flex justify-between items-center">
             <div className="text-[10px] text-white/20 italic">

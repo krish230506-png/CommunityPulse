@@ -3,7 +3,7 @@
 @theme {
   --color-dark-surface: #1e1e1e;
   --color-dark-bg: #121212;
-  --color-primary: #3b82f6; 
+  --color-primary: #3b82f6;
   --color-danger: #ef4444;
   --color-warning: #f59e0b;
   --font-system: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
@@ -20,7 +20,16 @@ body {
 }
 
 /* Typography Overrides */
-h1, h2, h3, h4, h5, h6, button, span, label, div {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+button,
+span,
+label,
+div {
   font-family: inherit;
 }
 
@@ -37,8 +46,15 @@ h1, h2, h3, h4, h5, h6, button, span, label, div {
 
 /* Premium Animations */
 @keyframes slideInRight {
-  from { transform: translateX(30px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .animate-slide-in {
@@ -56,13 +72,16 @@ h1, h2, h3, h4, h5, h6, button, span, label, div {
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #333;
   border-radius: 10px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #444;
 }
@@ -72,8 +91,15 @@ h1, h2, h3, h4, h5, h6, button, span, label, div {
 }
 
 @keyframes pulse-open {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .animate-pulse-open {
@@ -81,8 +107,13 @@ h1, h2, h3, h4, h5, h6, button, span, label, div {
 }
 
 @keyframes shrinkWidth {
-  from { width: 100%; }
-  to { width: 0%; }
+  from {
+    width: 100%;
+  }
+
+  to {
+    width: 0%;
+  }
 }
 
 .animate-shrink-width {
@@ -90,9 +121,23 @@ h1, h2, h3, h4, h5, h6, button, span, label, div {
 }
 
 @keyframes pulse-ring {
-  0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); opacity: 1; }
-  70% { transform: scale(1.2); box-shadow: 0 0 0 20px rgba(59, 130, 246, 0); opacity: 0.5; }
-  100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); opacity: 0; }
+  0% {
+    transform: scale(0.8);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    opacity: 1;
+  }
+
+  70% {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 20px rgba(59, 130, 246, 0);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(0.8);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    opacity: 0;
+  }
 }
 
 .animate-pulse-ring {
@@ -100,23 +145,47 @@ h1, h2, h3, h4, h5, h6, button, span, label, div {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out forwards;
 }
+
 @keyframes pulse-red {
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }
 
 @keyframes pulse-orange {
-  0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7); }
-  70% { box-shadow: 0 0 0 6px rgba(249, 115, 22, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(249, 115, 22, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(249, 115, 22, 0);
+  }
 }
 
 .animate-pulse-red {
@@ -128,9 +197,20 @@ h1, h2, h3, h4, h5, h6, button, span, label, div {
 }
 
 @keyframes pulse-prediction {
-  0% { fill-opacity: 0.1; stroke-width: 1px; }
-  50% { fill-opacity: 0.3; stroke-width: 3px; }
-  100% { fill-opacity: 0.1; stroke-width: 1px; }
+  0% {
+    fill-opacity: 0.1;
+    stroke-width: 1px;
+  }
+
+  50% {
+    fill-opacity: 0.3;
+    stroke-width: 3px;
+  }
+
+  100% {
+    fill-opacity: 0.1;
+    stroke-width: 1px;
+  }
 }
 
 .animate-pulse-prediction {
@@ -138,23 +218,56 @@ h1, h2, h3, h4, h5, h6, button, span, label, div {
 }
 
 @keyframes phone-ring-pulse {
-  0% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.8; }
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
 }
 
 @keyframes ripple-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-  70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
 }
 
 @keyframes ring-shake {
-  0% { transform: rotate(0deg); }
-  25% { transform: rotate(3deg); }
-  50% { transform: rotate(0deg); }
-  75% { transform: rotate(-3deg); }
-  100% { transform: rotate(0deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(3deg);
+  }
+
+  50% {
+    transform: rotate(0deg);
+  }
+
+  75% {
+    transform: rotate(-3deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
 }
 
 .animate-phone-ring {
@@ -167,4 +280,53 @@ h1, h2, h3, h4, h5, h6, button, span, label, div {
 
 .hover-ring-shake:hover .phone-icon {
   animation: ring-shake 0.3s infinite ease-in-out;
+}
+
+/* Indeterminate Progress Bar */
+@keyframes progress-indeterminate {
+  0% {
+    left: -35%;
+    right: 100%;
+  }
+
+  60% {
+    left: 100%;
+    right: -90%;
+  }
+
+  100% {
+    left: 100%;
+    right: -90%;
+  }
+}
+
+.animate-progress-indeterminate {
+  position: absolute;
+  animation: progress-indeterminate 1.5s infinite linear;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-4px);
+  }
+
+  50% {
+    transform: translateX(4px);
+  }
+
+  75% {
+    transform: translateX(-4px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.3s ease-in-out;
 }

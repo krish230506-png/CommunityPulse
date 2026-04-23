@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import { PaperAirplaneIcon, TrashIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { PaperAirplaneIcon, TrashIcon, SparklesIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import type { NeedEntity, VolunteerProfile } from '../types';
 
 const API_BASE = 'http://localhost:3000';
 
@@ -17,14 +18,15 @@ const QUICK_CHIPS = [
   "What resources are missing right now?"
 ];
 
-export default function AiAssistantPage() {
-  const [messages, setMessages] = useState<Message[]>([{
+export default function AiAssistantPage({ isEmbedded = false }: { isEmbedded?: boolean }) {
+  const [messages, setMessages] = useState<Message[]>(() => [{
     role: 'model',
     content: 'Namaste! I am CommunityPulse AI. I can analyze real-time live data of crises and volunteers. How can I help you coordinate today?',
     timestamp: Date.now()
   }]);
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [showQuickChips, setShowQuickChips] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -56,22 +58,22 @@ export default function AiAssistantPage() {
         // TOP PRIORITY FIX: Only send the most critical items to ensure we NEVER hit 413 limits 
         // and keep the AI focused on the actual emergencies.
         activeIncidents: (needsRes.data || [])
-          .filter((n: any) => n.status !== 'RESOLVED')
-          .sort((a: any, b: any) => (b.criticalityScore || 0) - (a.criticalityScore || 0))
+          .filter((n: NeedEntity) => n.status !== 'RESOLVED')
+          .sort((a: NeedEntity, b: NeedEntity) => (b.criticalityScore || 0) - (a.criticalityScore || 0))
           .slice(0, 15) // Only top 15 most urgent
-          .map((n: any) => ({
+          .map((n: NeedEntity) => ({
             loc: n.location.name,
             type: n.crisisType,
             score: Math.round(n.criticalityScore || 0),
             scale: n.estimatedScale
           })),
         
-        resolvedIncidentsCount: (needsRes.data || []).filter((n: any) => n.status === 'RESOLVED').length,
+        resolvedIncidentsCount: (needsRes.data || []).filter((n: NeedEntity) => n.status === 'RESOLVED').length,
         
         // Only send top 25 volunteers
         volunteers: (volunteersRes.data || [])
           .slice(0, 25) 
-          .map((v: any) => ({
+          .map((v: VolunteerProfile) => ({
             name: v.name,
             city: v.city,
             skills: v.skills,
@@ -122,22 +124,33 @@ export default function AiAssistantPage() {
 
   return (
     <div className="h-full flex flex-col bg-[#070B14] relative">
-      {/* Header */}
-      <div className="flex-shrink-0 p-6 border-b border-white/[0.06] flex justify-between items-center bg-[#0B1120]">
-        <div>
-          <h1 className="text-[1.6rem] font-bold text-white flex items-center gap-3">
-            <SparklesIcon className="w-8 h-8 text-[#00bcd4]" /> 
-            CommunityPulse AI Assistant
-          </h1>
-          <p className="text-[#8B9CB8] text-sm mt-1 mb-0">Ask anything about current crises, volunteers, and resource gaps</p>
+      {/* Header - Hidden when embedded in dashboard */}
+      {!isEmbedded && (
+        <div className="flex-shrink-0 p-6 border-b border-white/[0.06] flex justify-between items-center bg-[#0B1120]">
+          <div>
+            <h1 className="text-[1.6rem] font-bold text-white flex items-center gap-3">
+              <SparklesIcon className="w-8 h-8 text-[#00bcd4]" /> 
+              CommunityPulse AI Assistant
+            </h1>
+            <p className="text-[#8B9CB8] text-sm mt-1 mb-0">Ask anything about current crises, volunteers, and resource gaps</p>
+          </div>
+          <button 
+            onClick={handleClear}
+            className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2"
+          >
+            <TrashIcon className="w-4 h-4" /> Clear Chat
+          </button>
         </div>
-        <button 
-          onClick={handleClear}
-          className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2"
-        >
-          <TrashIcon className="w-4 h-4" /> Clear Chat
-        </button>
-      </div>
+      )}
+
+      {isEmbedded && (
+        <div className="flex-shrink-0 p-4 border-b border-white/[0.06] flex justify-between items-center bg-[#0B1120]">
+          <h2 className="text-sm font-bold text-white flex items-center gap-2">
+            <SparklesIcon className="w-4 h-4 text-[#00bcd4]" /> AI Assistant
+          </h2>
+          <button onClick={handleClear} className="text-[10px] text-red-400 font-bold hover:text-red-300 transition-colors uppercase tracking-widest">Clear</button>
+        </div>
+      )}
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
@@ -185,17 +198,26 @@ export default function AiAssistantPage() {
       {/* Input Area */}
       <div className="flex-shrink-0 p-6 bg-[#0B1120] border-t border-white/[0.06]">
         {/* Chips */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {QUICK_CHIPS.map(chip => (
-            <button
-              key={chip}
-              onClick={() => handleSend(chip)}
-              className="bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 text-[11px] font-bold px-3 py-1.5 rounded-full transition-colors"
+        {showQuickChips && (
+          <div className="flex flex-wrap gap-2 mb-4 items-center">
+            {QUICK_CHIPS.map(chip => (
+              <button
+                key={chip}
+                onClick={() => handleSend(chip)}
+                className="bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 text-[11px] font-bold px-3 py-1.5 rounded-full transition-colors"
+              >
+                {chip}
+              </button>
+            ))}
+            <button 
+              onClick={() => setShowQuickChips(false)}
+              className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-all"
+              title="Hide suggestions"
             >
-              {chip}
+              <XMarkIcon className="w-4 h-4" />
             </button>
-          ))}
-        </div>
+          </div>
+        )}
 
         <div className="relative flex items-center">
           <input 

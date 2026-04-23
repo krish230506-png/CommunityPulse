@@ -18,6 +18,7 @@ export interface NeedEntity {
   rawInputs: string[];
   embedding?: number[]; // Added for vector search demo
   originalLanguage?: string;
+  isLocal?: boolean;
 }
 
 export interface VolunteerProfile {

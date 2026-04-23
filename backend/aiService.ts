@@ -7,26 +7,29 @@ dotenv.config();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy-key');
 
 export class AIService {
-  
+
   static async extractNeed(text: string, base64Image?: string): Promise<Partial<NeedEntity> | null> {
     const prompt = `
-      You are an emergency response AI. Extract distress signal data from the input.
-      Understand mixed languages (Hinglish/Hindi/Bengali/Tamil/etc.).
-      
-      Output JSON strictly matching this schema:
-      {
-        "location": { "name": string, "lat": number, "lng": number },
-        "crisisType": "food" | "medical" | "shelter" | "water" | "infrastructure",
-        "urgencyReasoning": string,
-        "originalLanguage": string,
-        "estimatedScale": number
-      }
+    You are an emergency response AI. Extract distress signal data from the input (text and/or image).
 
-      Input: "${text}"
-    `;
+   If the input is vague, meaningless, or does not clearly describe a real-world crisis event, return null instead of guessing or fabricating data.
+
+    If an image is provided, analyze it for visible signs of disaster (flooding, smoke/fire, structural damage, etc.).
+
+    Output JSON strictly matching this schema:
+    {
+      "location": { "name": string, "lat": number, "lng": number },
+      "crisisType": "food" | "medical" | "shelter" | "water" | "infrastructure",
+      "urgencyReasoning": string,
+      "originalLanguage": string,
+      "estimatedScale": number
+    }
+
+    User Text Input: "${text || 'No text provided. Analyze image only.'}"
+  `;
 
     try {
-      const model = genAI.getGenerativeModel({ 
+      const model = genAI.getGenerativeModel({
         model: 'gemini-2.0-flash',
         generationConfig: {
           responseMimeType: 'application/json',
@@ -42,10 +45,10 @@ export class AIService {
                 },
                 required: ['name']
               },
-              crisisType: { 
-                type: SchemaType.STRING, 
+              crisisType: {
+                type: SchemaType.STRING,
                 enum: ['food', 'medical', 'shelter', 'water', 'infrastructure'],
-                format: "enum" 
+                format: "enum"
               },
               urgencyReasoning: { type: SchemaType.STRING },
               originalLanguage: { type: SchemaType.STRING },
@@ -67,7 +70,13 @@ export class AIService {
       }
 
       const response = await model.generateContent(parts);
-      const result = JSON.parse(response.response.text());
+      let result;
+      try {
+        result = JSON.parse(response.response.text());
+      } catch {
+        console.warn('⚠️ Invalid JSON from Gemini');
+        return null;
+      }
       return result;
     } catch (e: any) {
       if (e.status === 429) {
@@ -75,15 +84,15 @@ export class AIService {
         return null;
       }
       console.error('Gemini extraction failed:', e);
-      throw e; 
+      throw e;
     }
   }
 
   static async transcribeAudio(base64Audio: string): Promise<string | null> {
-    const prompt = `Transcribe the spoken words in this audio clip exactly. Return only the transcription as plain text, nothing else.`;
+    const prompt = `Transcribe the spoken words in this audio clip exactly.Return only the transcription as plain text, nothing else.`;
 
     try {
-      const model = genAI.getGenerativeModel({ 
+      const model = genAI.getGenerativeModel({
         model: 'gemini-2.0-flash',
       });
 
@@ -118,8 +127,8 @@ export class AIService {
   static async generateDispatchMessage(volunteer: VolunteerProfile, need: NeedEntity): Promise<string> {
     const prompt = `
       Compose a short WhatsApp message to dispatch volunteer ${volunteer.name}. 
-      Strictly format the output EXACTLY like this (translate to ${volunteer.preferredLanguage} if it's not English):
-      "Hi ${volunteer.name}, there's a ${need.crisisType} emergency near ${need.location.name}. Your ${volunteer.skills[0]} expertise is urgently needed."
+      Strictly format the output EXACTLY like this(translate to ${volunteer.preferredLanguage} if it's not English):
+    "Hi ${volunteer.name}, there's a ${need.crisisType} emergency near ${need.location.name}. Your ${volunteer.skills[0]} expertise is urgently needed."
     `;
 
     try {
@@ -134,10 +143,10 @@ export class AIService {
 
   static async askAssistant(messages: any[], contextData: any): Promise<string> {
     const userQuery = messages[messages.length - 1].content.toLowerCase();
-    
+
     // 1. CLOUD INTELLIGENCE (Priority)
     const modelsToTry = [
-      'gemini-2.0-flash', 
+      'gemini-2.0-flash',
       'gemini-flash-latest',
       'gemini-pro-latest'
     ];
@@ -145,12 +154,12 @@ export class AIService {
     for (const modelName of modelsToTry) {
       try {
         const model = genAI.getGenerativeModel({ model: modelName });
-        const prompt = `You are a crisis coordination AI. Context: ${JSON.stringify(contextData)}. User: ${messages[messages.length-1].content}`;
+        const prompt = `You are a crisis coordination AI.Context: ${JSON.stringify(contextData)}.User: ${messages[messages.length - 1].content} `;
         const response = await model.generateContent(prompt);
         const text = response.response.text();
         if (text) return text;
       } catch (e: any) {
-        console.warn(`Cloud attempt (${modelName}) failed: ${e.message}`);
+        console.warn(`Cloud attempt(${modelName}) failed: ${e.message} `);
         continue;
       }
     }
@@ -158,25 +167,25 @@ export class AIService {
     // 2. SAFETY NET (LHI Fallback)
     const incidents = contextData.activeIncidents || [];
     const volunteers = contextData.volunteers || [];
-    
+
     if (userQuery.includes('volunteer')) {
       const avail = volunteers.filter((v: any) => v.available).length;
-      return `Currently, there are ${avail} volunteers available for dispatch. Coordination focuses on cities like ${[...new Set(volunteers.slice(0,5).map((v:any)=>v.city))].join(', ')}.`;
+      return `Currently, there are ${avail} volunteers available for dispatch.Coordination focuses on cities like ${[...new Set(volunteers.slice(0, 5).map((v: any) => v.city))].join(', ')}.`;
     }
 
     if (userQuery.includes('urgent') || userQuery.includes('area') || userQuery.includes('help')) {
-      const top = incidents.sort((a:any, b:any) => b.score - a.score)[0];
-      return top 
+      const top = incidents.sort((a: any, b: any) => b.score - a.score)[0];
+      return top
         ? `The most critical incident is in ${top.loc} (Severity: ${top.score}). It is categorized as a ${top.type} emergency requiring immediate attention.`
         : "All clear. No active crises detected in the live data stream.";
     }
 
     if (userQuery.includes('summarize') || userQuery.includes('summary') || userQuery.includes('crises')) {
-      const types = [...new Set(incidents.map((i:any)=>i.type))];
-      return `[Local Summary] There are ${incidents.length} active incidents. Types involved: ${types.join(', ')}. Most critical locations: ${incidents.slice(0,3).map((i:any)=>i.loc).join(', ')}.`;
+      const types = [...new Set(incidents.map((i: any) => i.type))];
+      return `[Local Summary] There are ${incidents.length} active incidents.Types involved: ${types.join(', ')}. Most critical locations: ${incidents.slice(0, 3).map((i: any) => i.loc).join(', ')}.`;
     }
 
-    return "[Local Intelligence Fallback] My cloud brain is currently resting due to high traffic, but my local scanners show " + incidents.length + " active crises and " + volunteers.filter((v:any)=>v.available).length + " available volunteers. What specific metric can I look up for you in the database?";
+    return "[Local Intelligence Fallback] My cloud brain is currently resting due to high traffic, but my local scanners show " + incidents.length + " active crises and " + volunteers.filter((v: any) => v.available).length + " available volunteers. What specific metric can I look up for you in the database?";
   }
 
   static async getPredictions(incidents: any[]): Promise<any[]> {
@@ -209,22 +218,22 @@ export class AIService {
     ];
 
     const prompt = `
-      You are a crisis prediction AI for India. Analyze these current active crises and their patterns:
+      You are a crisis prediction AI for India.Analyze these current active crises and their patterns:
       ${JSON.stringify(incidents)}
 
       Based on: crisis clustering by city, time patterns, types of crises already occurring, seasonal factors for India in April, and historical escalation patterns — predict the TOP 3 cities or areas most likely to report a NEW crisis in the next 6 hours.
       
       Output JSON strictly matching this schema:
-      [
-        {
-          "city": string,
-          "predictedCrisisType": "flood" | "fire" | "medical" | "shelter" | "water" | "infrastructure",
-          "riskLevel": "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
-          "confidenceScore": number (0-100),
-          "reasoning": string (1 sentence),
-          "recommendedPreventiveAction": string (1 sentence)
-        }
-      ]
+    [
+      {
+        "city": string,
+        "predictedCrisisType": "flood" | "fire" | "medical" | "shelter" | "water" | "infrastructure",
+        "riskLevel": "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
+        "confidenceScore": number(0 - 100),
+        "reasoning": string(1 sentence),
+        "recommendedPreventiveAction": string(1 sentence)
+      }
+    ]
     `;
 
     // Try multiple models for the prediction engine
@@ -232,20 +241,20 @@ export class AIService {
 
     for (const modelName of modelsToTry) {
       try {
-        const model = genAI.getGenerativeModel({ 
+        const model = genAI.getGenerativeModel({
           model: modelName,
           generationConfig: { responseMimeType: 'application/json' }
         });
 
         const response = await model.generateContent(prompt);
         const result = JSON.parse(response.response.text());
-        
+
         // If AI returns valid but empty data, use our high-quality fallback
         if (result && Array.isArray(result) && result.length > 0) {
           return result;
         }
       } catch (e: any) {
-        console.warn(`Prediction attempt (${modelName}) failed: ${e.message}`);
+        console.warn(`Prediction attempt(${modelName}) failed: ${e.message} `);
         continue;
       }
     }
