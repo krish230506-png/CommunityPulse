@@ -1,6 +1,5 @@
 # ⚡ CommunityPulse: TONIC Command Center
 
-[![Hackathon Project](https://img.shields.io/badge/Hackathon-Winner_Vision-blueviolet?style=for-the-badge)](https://github.com/Drifting-Moon/TONIC)
 [![AI Powered](https://img.shields.io/badge/AI-Gemini_2.0_Flash-blue?style=for-the-badge)](https://ai.google.dev/)
 [![Tech Stack](https://img.shields.io/badge/Stack-React_%7C_Node_%7C_Leaflet-green?style=for-the-badge)]()
 
