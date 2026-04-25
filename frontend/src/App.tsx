@@ -143,7 +143,7 @@ export default function App() {
   }, [isSidebarCollapsed]);
 
   // UI State
-  const [mapLayer, setMapLayer] = useState<'dark' | 'light' | 'satellite'>('light');
+  const [mapLayer, setMapLayer] = useState<'dark' | 'light' | 'satellite'>('dark');
   const [bgTheme, setBgTheme] = useState<'white' | 'black' | 'space'>(() => {
     return (localStorage.getItem('bgTheme') as 'white' | 'black' | 'space') || 'black';
   });
@@ -1142,8 +1142,11 @@ export default function App() {
                 className={`w-8 h-8 rounded-lg ${sdg.color} flex items-center justify-center text-white font-black text-[10px] shadow-lg hover:scale-110 transition-all cursor-default relative group/sdg`}
               >
                 {sdg.id}
-                <div className="absolute left-full ml-4 px-2 py-1 bg-black text-[9px] rounded opacity-0 group-hover/sdg:opacity-100 whitespace-nowrap z-50 pointer-events-none">
+                <div className={`absolute ${isSidebarCollapsed ? 'left-full ml-4' : 'bottom-full left-1/2 -translate-x-1/2 mb-3'} px-3 py-2 bg-[#0B0F14]/90 backdrop-blur-md text-white text-[10px] font-bold rounded-xl border border-white/10 shadow-2xl opacity-0 group-hover/sdg:opacity-100 pointer-events-none transition-all z-[3000] whitespace-nowrap scale-90 group-hover/sdg:scale-100 origin-bottom`}>
                   {sdg.name}
+                  {!isSidebarCollapsed && (
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#0B0F14]/90" />
+                  )}
                 </div>
               </div>
             ))}

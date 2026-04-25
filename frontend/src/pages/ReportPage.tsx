@@ -33,16 +33,22 @@ const crisisOptions: CrisisOption[] = [
 ];
 
 export default function ReportPage() {
-  const [bgTheme] = useState<'white' | 'black'>(() => {
-    return (localStorage.getItem('bgTheme') as 'white' | 'black') || 'black';
+  const [bgTheme, setBgTheme] = useState<'white' | 'black' | 'space'>(() => {
+    return (localStorage.getItem('user-bgTheme') as 'white' | 'black' | 'space') || 'black';
   });
-  const isDark = bgTheme === 'black';
+
+  useEffect(() => {
+    localStorage.setItem('user-bgTheme', bgTheme);
+  }, [bgTheme]);
+
+  const isDark = bgTheme !== 'white';
+  const isSpace = bgTheme === 'space';
 
   const theme = {
-    bg: isDark ? 'bg-[#0f1117]' : 'bg-[#F0EEE8]',
-    surface: isDark ? 'bg-zinc-900' : 'bg-white',
-    surfaceSoft: isDark ? 'bg-zinc-800/50' : 'bg-[#EEEcE6]',
-    border: isDark ? 'border-white/5' : 'border-black/8',
+    bg: isSpace ? 'nasa-bg' : (isDark ? 'bg-[#0f1117]' : 'bg-[#F0EEE8]'),
+    surface: isSpace ? 'bg-black/40 backdrop-blur-md' : (isDark ? 'bg-zinc-900' : 'bg-white'),
+    surfaceSoft: isSpace ? 'bg-white/10' : (isDark ? 'bg-zinc-800/50' : 'bg-[#EEEcE6]'),
+    border: isSpace ? 'border-white/10' : (isDark ? 'border-white/5' : 'border-black/8'),
     text: isDark ? 'text-zinc-100' : 'text-zinc-900',
     textMuted: isDark ? 'text-zinc-400' : 'text-zinc-600',
     accent: isDark ? 'text-sky-400' : 'text-sky-600',
@@ -244,7 +250,25 @@ export default function ReportPage() {
           </div>
           <span className="font-light text-xl tracking-tight">CommunityPulse</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          <div className={`flex items-center gap-1.5 ${theme.surfaceSoft} p-1 rounded-full border ${theme.border}`}>
+            <button
+              onClick={() => setBgTheme('white')}
+              className={`w-3.5 h-3.5 rounded-full bg-white border transition-all hover:scale-110 ${bgTheme === 'white' ? 'border-gray-500 ring-2 ring-offset-1 ring-gray-400' : 'border-gray-300'}`}
+              title="Light"
+            />
+            <button
+              onClick={() => setBgTheme('black')}
+              className={`w-3.5 h-3.5 rounded-full bg-black border transition-all hover:scale-110 ${bgTheme === 'black' ? 'border-gray-500 ring-2 ring-offset-1 ring-gray-400' : 'border-gray-300'}`}
+              title="Dark"
+            />
+            <button
+              onClick={() => setBgTheme('space')}
+              className={`w-3.5 h-3.5 rounded-full bg-indigo-600 border transition-all hover:scale-110 ${bgTheme === 'space' ? 'border-indigo-400 ring-2 ring-offset-1 ring-indigo-500' : 'border-indigo-900'}`}
+              title="Space"
+            />
+          </div>
+
           <button
             onClick={() => setIsVoiceOpen(true)}
             className="bg-red-600/10 hover:bg-red-600/20 text-red-500 border border-red-500/30 w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-lg group relative"
@@ -255,7 +279,7 @@ export default function ReportPage() {
           </button>
           <div className="bg-green-500/10 border border-green-500/20 rounded-full px-3 py-1 flex items-center">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2 animate-pulse"></span>
-            <span className="text-[10px] font-black text-green-500 uppercase tracking-widest">Response Active</span>
+            <span className="text-[10px] font-black text-green-500 uppercase tracking-widest">Active</span>
           </div>
         </div>
       </header>

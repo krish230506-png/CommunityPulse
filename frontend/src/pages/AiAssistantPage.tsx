@@ -19,11 +19,16 @@ const QUICK_CHIPS = [
 ];
 
 export default function AiAssistantPage({ isEmbedded = false }: { isEmbedded?: boolean }) {
-  const [messages, setMessages] = useState<Message[]>(() => [{
-    role: 'model',
-    content: 'Namaste! I am CommunityPulse AI. I can analyze real-time live data of crises and volunteers. How can I help you coordinate today?',
-    timestamp: Date.now()
-  }]);
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  useEffect(() => {
+    // Initialize with welcome message on mount
+    setMessages([{
+      role: 'model',
+      content: 'Namaste! I am CommunityPulse AI. I can analyze real-time live data of crises and volunteers. How can I help you coordinate today?',
+      timestamp: new Date().getTime()
+    }]);
+  }, []);
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showQuickChips, setShowQuickChips] = useState(true);
@@ -40,7 +45,7 @@ export default function AiAssistantPage({ isEmbedded = false }: { isEmbedded?: b
   const handleSend = async (textToUse: string) => {
     if (!textToUse.trim()) return;
 
-    const newMsg: Message = { role: 'user', content: textToUse.trim(), timestamp: Date.now() };
+    const newMsg: Message = { role: 'user', content: textToUse.trim(), timestamp: new Date().getTime() };
     const updatedMessages = [...messages, newMsg];
     
     setMessages(updatedMessages);
@@ -75,7 +80,6 @@ export default function AiAssistantPage({ isEmbedded = false }: { isEmbedded?: b
           .slice(0, 25) 
           .map((v: VolunteerProfile) => ({
             name: v.name,
-            city: v.city,
             skills: v.skills,
             available: v.status === 'AVAILABLE'
           })),
@@ -90,15 +94,21 @@ export default function AiAssistantPage({ isEmbedded = false }: { isEmbedded?: b
       setMessages(prev => [...prev, {
         role: 'model',
         content: res.data.text || "⚠️ Received empty response from intelligence server.",
-        timestamp: Date.now()
+        timestamp: new Date().getTime()
       }]);
-    } catch (e: any) {
-      console.error("Chat error:", e);
-      const serverError = e.response?.data?.error || e.message;
+    } catch (err: unknown) {
+      console.error("Chat error:", err);
+      let serverError = "Connection failed";
+      if (axios.isAxiosError(err)) {
+        serverError = err.response?.data?.error || err.message;
+      } else if (err instanceof Error) {
+        serverError = err.message;
+      }
+      
       setMessages(prev => [...prev, {
         role: 'model',
         content: `⚠️ Technical Connection Failed: ${serverError}`,
-        timestamp: Date.now()
+        timestamp: new Date().getTime()
       }]);
     } finally {
       setIsTyping(false);
@@ -117,7 +127,7 @@ export default function AiAssistantPage({ isEmbedded = false }: { isEmbedded?: b
       setMessages([{
         role: 'model',
         content: 'Chat cleared. How can I assist you?',
-        timestamp: Date.now()
+        timestamp: new Date().getTime()
       }]);
     }
   };
