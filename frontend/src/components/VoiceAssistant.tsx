@@ -394,7 +394,7 @@ Note: Parse intelligently considering the user spoke in ${userLangRef.current}.`
     if (isOpen) {
       synthRef.current.cancel();
       synthRef.current.resume();
-      // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
+      // eslint-disable-next-line 
       resetFlow();
       speakGreeting();
     } else {
