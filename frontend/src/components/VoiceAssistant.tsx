@@ -114,13 +114,15 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
   const answersRef = useRef(answers);
   const currentTextRef = useRef(currentText);
   const userLangRef = useRef(userLang);
+  const isOpenRef = useRef(isOpen);
 
   useEffect(() => {
     stepRef.current = step;
     answersRef.current = answers;
     currentTextRef.current = currentText;
     userLangRef.current = userLang;
-  }, [step, answers, currentText, userLang]);
+    isOpenRef.current = isOpen;
+  }, [step, answers, currentText, userLang, isOpen]);
 
   const clearAllTimers = () => {
     if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
@@ -166,14 +168,14 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
 
     let isCanceled = false;
     const timeout = setTimeout(() => {
-      if (!isCanceled) {
+      if (!isCanceled && isOpenRef.current) {
         setIsSpeaking(false);
         if (onComplete) onComplete();
       }
     }, 12000);
 
     utterance.onend = () => {
-      if (isCanceled) return;
+      if (isCanceled || !isOpenRef.current) return;
       clearTimeout(timeout);
       setIsSpeaking(false);
       currentUtteranceRef.current = null;
