@@ -115,6 +115,8 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
   const currentTextRef = useRef(currentText);
   const userLangRef = useRef(userLang);
   const isOpenRef = useRef(isOpen);
+  const isListeningRef = useRef(isListening);
+  const isSpeakingRef = useRef(isSpeaking);
 
   useEffect(() => {
     stepRef.current = step;
@@ -122,7 +124,9 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
     currentTextRef.current = currentText;
     userLangRef.current = userLang;
     isOpenRef.current = isOpen;
-  }, [step, answers, currentText, userLang, isOpen]);
+    isListeningRef.current = isListening;
+    isSpeakingRef.current = isSpeaking;
+  }, [step, answers, currentText, userLang, isOpen, isListening, isSpeaking]);
 
   const clearAllTimers = () => {
     if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
@@ -199,16 +203,23 @@ export default function VoiceAssistant({ isOpen, onClose, apiBase }: VoiceAssist
   };
 
   const startListening = () => {
-    if (!isOpen) return;
+    if (!isOpenRef.current || isSpeakingRef.current) return;
     if (recognitionRef.current) {
       setCurrentText("");
       currentTextRef.current = "";
       setIsListening(true);
-      try {
-        recognitionRef.current.start();
-      } catch (e) {
-        console.debug('Recognition start failed:', e);
-      }
+      isListeningRef.current = true;
+      
+      // Use a small timeout to ensure any previous abort() has finished
+      setTimeout(() => {
+        if (!isOpenRef.current || isSpeakingRef.current) return;
+        try {
+          recognitionRef.current.start();
+        } catch (e) {
+          // If already started, it's fine
+          console.debug('Recognition start failed (expected if already running):', e);
+        }
+      }, 50);
     }
   };
 
@@ -289,8 +300,15 @@ Note: Parse intelligently considering the user spoke in ${userLangRef.current}.`
   };
 
   const handleNext = async (explicitLang?: string) => {
+    if (!isListeningRef.current && !explicitLang) return; // Prevent double trigger
+    
     const finalAnswer = explicitLang || currentTextRef.current;
-    if (recognitionRef.current) recognitionRef.current.abort();
+    setIsListening(false);
+    isListeningRef.current = false;
+    
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch (e) {}
+    }
 
     const currentStep = stepRef.current;
 
@@ -365,12 +383,24 @@ Note: Parse intelligently considering the user spoke in ${userLangRef.current}.`
 
         recognition.onstart = () => {
           setIsListening(true);
+          isListeningRef.current = true;
           if (maxDurationTimerRef.current) clearTimeout(maxDurationTimerRef.current);
           maxDurationTimerRef.current = setTimeout(() => {
             if (currentTextRef.current === "" || !currentTextRef.current) {
               handleNext();
             }
           }, 15000);
+        };
+
+        recognition.onend = () => {
+          // Restart if it stopped unexpectedly while we were supposed to be listening
+          if (isOpenRef.current && isListeningRef.current && !isSpeakingRef.current) {
+            setTimeout(() => {
+              if (isOpenRef.current && isListeningRef.current && !isSpeakingRef.current) {
+                try { recognition.start(); } catch (e) {}
+              }
+            }, 100);
+          }
         };
 
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
