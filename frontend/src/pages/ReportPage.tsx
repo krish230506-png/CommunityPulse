@@ -5,12 +5,15 @@ import {
   MicrophoneIcon, 
   StopCircleIcon,
   MapPinIcon,
-  BoltIcon
+  BoltIcon,
+  PaperAirplaneIcon
 } from '@heroicons/react/24/outline';
 import type { NeedEntity } from '../types';
 import { saveOfflineReport } from '../offlineSync';
 import VoiceAssistant from '../components/VoiceAssistant';
-import { PhoneIcon } from '@heroicons/react/24/outline';
+import { PhoneIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
+import VoiceCallModal from '../components/VoiceCallModal';
 
 const API_BASE = 'http://localhost:3000';
 
@@ -40,7 +43,7 @@ interface SpeechRecognitionErrorEvent {
 
 const crisisOptions: CrisisOption[] = [
   { type: 'medical', emoji: '🚑', label: 'Medical', color: 'bg-red-500' },
-  { type: 'flood', emoji: '🌊', label: 'Flood', color: 'bg-blue-500' },
+  { type: 'flood', emoji: '🌊', label: 'Flood', color: 'bg-red-500' },
   { type: 'fire', emoji: '🔥', label: 'Fire', color: 'bg-orange-500' },
   { type: 'food', emoji: '🍱', label: 'Food', color: 'bg-green-500' },
   { type: 'infrastructure', emoji: '🏗️', label: 'Infrastructure', color: 'bg-zinc-500' },
@@ -48,6 +51,7 @@ const crisisOptions: CrisisOption[] = [
 ];
 
 export default function ReportPage() {
+  const navigate = useNavigate();
   const [bgTheme, setBgTheme] = useState<'white' | 'black' | 'space'>(() => {
     return (localStorage.getItem('user-bgTheme') as 'white' | 'black' | 'space') || 'black';
   });
@@ -97,6 +101,7 @@ export default function ReportPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -254,13 +259,22 @@ export default function ReportPage() {
   return (
     <div className={`min-h-screen h-screen overflow-y-auto ${theme.bg} ${theme.text} transition-all duration-300 font-sans`}>
       {/* Header */}
-      <header className="p-6 flex justify-between items-center max-w-[480px] mx-auto w-full">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg">
-            <BoltIcon className="w-5 h-5" />
+      <header className="py-8 px-10 flex justify-between items-center w-full">
+        <button
+          onClick={() => navigate('/')}
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-full border ${theme.border} ${theme.surfaceSoft} ${theme.text} hover:bg-white/10 transition-all text-[11px] font-bold shadow-lg active:scale-95 group`}
+        >
+          <ArrowLeftIcon className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+          Admin Portal
+        </button>
+
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 rounded-2xl bg-red-600 flex items-center justify-center text-white shadow-xl">
+            <BoltIcon className="w-7 h-7" />
           </div>
-          <span className="font-light text-xl tracking-tight">CommunityPulse</span>
+          <span className="font-light text-3xl tracking-tight">CommunityPulse</span>
         </div>
+
         <div className="flex items-center gap-4">
           <div className={`flex items-center gap-1.5 ${theme.surfaceSoft} p-1 rounded-full border ${theme.border}`}>
             <button
@@ -301,7 +315,7 @@ export default function ReportPage() {
         </div>
       )}
 
-      <main className="max-w-[480px] mx-auto px-6 pt-6 pb-20 space-y-10">
+      <main className="max-w-[800px] mx-auto px-10 pt-6 pb-20 space-y-10">
         <div className="space-y-2">
           <h1 className="text-4xl font-light tracking-tight leading-tight">Report an Emergency</h1>
           <p className={`${theme.textMuted} text-[0.95rem] font-medium`}>Your report reaches trained volunteers instantly.</p>
@@ -391,10 +405,11 @@ export default function ReportPage() {
           <button
             type="submit"
             disabled={isIngesting || !selectedType || !description}
-            className={`w-full py-5 rounded-2xl font-black text-white text-sm uppercase tracking-[0.2em] shadow-2xl transition-all active:scale-[0.98] ${
-              isIngesting ? 'bg-zinc-800 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/20'
+            className={`w-full py-5 rounded-2xl font-black text-white text-sm uppercase tracking-[0.2em] shadow-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 ${
+              isIngesting ? 'bg-zinc-800 cursor-not-allowed' : 'bg-red-600 hover:bg-red-500 shadow-red-500/20'
             }`}
           >
+            {!isIngesting && <PaperAirplaneIcon className="w-5 h-5 text-white fill-white" />}
             {isIngesting ? 'Sending to response team...' : 'Send Emergency Report'}
           </button>
         </form>

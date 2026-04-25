@@ -25,6 +25,7 @@ import {
   ClockCounterClockwiseIcon
 } from '@phosphor-icons/react';
 
+
 // Restored Heroicons for general UI elements
 import {
   BoltIcon, ExclamationTriangleIcon, PaperAirplaneIcon,
@@ -661,7 +662,7 @@ export default function App() {
                 onClick={() => setIsVoiceOpen(true)}
                 className="bg-[#16a34a] hover:bg-[#15803d] text-white px-4 py-1.5 rounded-full text-[12px] font-bold transition-all duration-300 flex items-center h-9 shadow-[0_4px_12px_rgba(22,163,74,0.3)] active:scale-95 z-[100]"
               >
-                <span className="mr-2 text-lg">📞</span>
+                <PhoneIcon className="w-4 h-4 mr-2" />
                 Emergency Call
               </button>
 
@@ -1075,7 +1076,7 @@ export default function App() {
         </button>
 
         <div className={`p-8 mb-4 flex items-center ${isSidebarCollapsed ? 'justify-center' : 'space-x-4'}`}>
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-900/20 flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center shadow-lg shadow-red-900/20 flex-shrink-0">
             <BoltIcon className="w-6 h-6 text-white" />
           </div>
           {!isSidebarCollapsed && (
@@ -1186,7 +1187,7 @@ export default function App() {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setIsVoiceOpen(true)}
+                onClick={() => setIsCallModalOpen(true)}
                 className="bg-red-600/10 hover:bg-red-600/20 text-red-500 border border-red-500/30 w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-lg group relative"
                 title="Emergency Call"
               >
