@@ -73,4 +73,4 @@ Navigate to `http://localhost:5173` to access the Admin Command Center, or `http
 
 ---
 
-Developed for the **Crisis Tech Hackathon**. Stay Safe. 🚨
+
