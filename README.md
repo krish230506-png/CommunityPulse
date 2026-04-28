@@ -4,7 +4,7 @@
 **AI-powered crisis coordination that bridges citizens in distress and volunteer responders — in real time.**
 
 
-> 🏆 *Built for [Hackathon Name] · Category: Crisis Tech / Civic AI*
+> 🏆 *Built for Google Solution Challenge 2026 India 
 
 > 🌐 **Live Demo**: [community-pulse-t6p0.onrender.com](https://community-pulse-t6p0.onrender.com)
 
