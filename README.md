@@ -1,76 +1,206 @@
-# ⚡ CommunityPulse: CommunityPulse Command Center
+<div align="center">
 
-[![AI Powered](https://img.shields.io/badge/AI-Gemini_2.0_Flash-blue?style=for-the-badge)](https://ai.google.dev/)
-[![Tech Stack](https://img.shields.io/badge/Stack-React_%7C_Node_%7C_Leaflet-green?style=for-the-badge)]()
+# ⚡ CommunityPulse
+### *When every second counts, intelligence scales.*
 
-**CommunityPulse** is a high-fidelity crisis coordination and emergency response platform. Designed as a "Command Center" for disaster zones, it bridges the gap between citizens in distress and volunteer response teams using state-of-the-art AI.
+**AI-powered crisis coordination that bridges citizens in distress and volunteer responders — in real time.**
+
+[![AI Engine](https://img.shields.io/badge/AI-Gemini_2.0_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
+[![Frontend](https://img.shields.io/badge/React_18-TypeScript-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Backend](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Maps](https://img.shields.io/badge/Leaflet.js-Heatmaps-199900?style=for-the-badge&logo=leaflet&logoColor=white)](https://leafletjs.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+
+---
+
+> 🏆 *Built for [Hackathon Name] · Category: Crisis Tech / Civic AI*
+
+</div>
+
+---
+
+## 🌍 The Problem
+
+During a disaster, **coordination kills more time than the disaster itself.** Citizens can't reach responders. Duplicate reports overwhelm operators. Volunteers show up at the wrong place. The right skills never meet the right crisis.
+
+**CommunityPulse fixes this.**
+
+---
+
+## 🎬 See It In Action
+
+> *(Add a GIF or screenshot here — e.g., `![Demo](docs/demo.gif)`)*
+
+| Citizen Portal | Command Center | Dispatch Engine |
+|:-:|:-:|:-:|
+| ![Report](docs/screenshots/report.png) | ![Dashboard](docs/screenshots/dashboard.png) | ![Dispatch](docs/screenshots/dispatch.png) |
+| *Speak or type in your language* | *Live heatmap + AI scoring* | *Volunteer matched in seconds* |
 
 ---
 
 ## 🚀 Key Features
 
 ### 🎙️ Multimodal Emergency Ingestion
-- **Interactive AI Call**: Citizens can speak naturally to an AI assistant that understands context and location in multiple languages (English, Hindi, Marathi, Tamil, Bengali, Telugu).
-- **Visual Evidence**: Upload photos of incidents directly from the field for instant AI analysis and verification.
-- **GPS-Aware**: Automatic location extraction ensures help is sent exactly where it's needed.
+Citizens report crises the way humans communicate — by talking. The AI handles the rest.
+
+- **Voice-first reporting** via Web Speech API with real-time transcription
+- **Natural language understanding** powered by Gemini 2.0 Flash — no forms, no friction
+- **6 languages supported**: English, Hindi, Marathi, Tamil, Bengali, Telugu
+- **Photo evidence upload** with instant AI analysis and scene verification
+- **Automatic GPS extraction** — location is inferred and validated, not manually entered
 
 ### 🧠 Predictive Intelligence Dashboard
-- **Dynamic Heatmaps**: Visualizes crisis density in real-time using GPU-accelerated Leaflet overlays.
-- **Criticality Scoring**: AI automatically ranks incidents from 0-100 based on scale, urgency, and report velocity.
-- **Smart Deduplication**: Semantic analysis groups multiple reports of the same incident into a single "Crisis Cluster" to prevent resource waste.
+The Command Center doesn't just display data — it thinks ahead.
+
+- **Live crisis heatmaps** rendered via canvas-accelerated Leaflet overlays
+- **AI Criticality Scoring (0–100)** weighing scale, urgency, and report velocity in real time
+- **Semantic deduplication** — cosine similarity on AI embeddings clusters overlapping reports into unified "Crisis Clusters", eliminating noise and redundant dispatch
+- **90-second auto-refresh** triggers escalation risk predictions before situations deteriorate
 
 ### 🚁 Autonomous Dispatch System
-- **Intelligent Matching**: The system analyzes volunteer skills, distance (5km geofence), and reliability to find the perfect responder.
-- **WhatsApp-Ready**: Generates personalized, localized dispatch messages ready for instant transmission.
+The right volunteer, at the right place, at the right time.
+
+- **Intelligent matching** scores volunteers on skills, availability, and proximity (5km geofence)
+- **Haversine distance calculations** ensure accurate real-world routing, not straight-line guesses
+- **Reliability scoring** deprioritizes no-shows from past responses automatically
+- **WhatsApp-ready dispatch messages** generated in the volunteer's language, ready to send
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React 18, TypeScript, TailwindCSS, Leaflet.js (Map), Framer Motion (Animations).
-- **Backend**: Node.js, Express, Multer (Media handling).
-- **AI Engine**: Google Gemini 2.0 Flash (Extraction, Transcription, & Predictions), Google Generative AI Embeddings.
-- **Data Layer**: Firestore (Cloud) or Mock In-Memory (Local Demo Mode).
+| Layer | Technology | Why |
+| :--- | :--- | :--- |
+| **Frontend** | React 18, TypeScript, TailwindCSS | Fast, type-safe UI with utility-first styling |
+| **Animations** | Framer Motion | Smooth transitions for high-stress UX |
+| **Maps** | Leaflet.js + Canvas overlays | Lightweight, performant heatmap rendering |
+| **Backend** | Node.js, Express, Multer | Handles concurrent media uploads reliably |
+| **AI Engine** | Google Gemini 2.0 Flash | Multimodal — text, audio, image in one model |
+| **Embeddings** | Google Generative AI | Semantic similarity for deduplication |
+| **Database** | Firestore (prod) / In-memory (demo) | Zero-config local demo mode |
 
 ---
 
 ## 📦 Quick Start
 
-### 1. Backend Setup
+### Prerequisites
+- Node.js **v18+**
+- A free [Google Gemini API key](https://aistudio.google.com/app/apikey)
+- *(Optional)* Firebase `serviceAccount.json` for cloud persistence
+
+> **No credentials? No problem.** Skip the API key and the system auto-boots in **Demo Mode** with 1,150+ pre-seeded volunteers and 8 live crisis scenarios.
+
+### 1. Backend
+
 ```bash
 cd backend
 npm install
-# Create a .env file with:
-# GEMINI_API_KEY=your_key_here
+
+# Create your environment file
+echo "GEMINI_API_KEY=your_key_here" > .env
+
 npm run dev
+# → API running at http://localhost:3000
 ```
 
-### 2. Frontend Setup
+### 2. Frontend
+
 ```bash
 cd frontend
 npm install
 npm run dev
+# → App running at http://localhost:5173
 ```
 
-Navigate to `http://localhost:5173` to access the Admin Command Center, or `http://localhost:5173/report` for the Citizen Portal.
+### 3. Navigate
+
+| URL | Interface |
+| :-- | :-- |
+| `http://localhost:5173` | 🖥️ Admin Command Center |
+| `http://localhost:5173/report` | 📱 Citizen Reporting Portal |
 
 ---
 
-## 🌐 Technical Architecture
+## 🌐 Architecture
 
-| Pillar | Description |
-| :--- | :--- |
-| **Ingestion** | Web Speech API for real-time transcription + Gemini for semantic extraction. |
-| **Analysis** | Cosine similarity on AI embeddings for sub-2km deduplication. |
-| **Dispatch** | Haversine distance calculations paired with Skill-Match scoring. |
-| **Intelligence** | 90-second automated refresh of predictive crisis escalation risks. |
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        CITIZEN                              │
+│         Voice / Photo / Text  →  GPS Location               │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+              ┌────────▼────────┐
+              │  INGESTION LAYER │
+              │  Web Speech API  │
+              │  Gemini 2.0 Flash│  ← Multimodal extraction
+              └────────┬─────────┘
+                       │
+              ┌────────▼─────────┐
+              │  ANALYSIS LAYER  │
+              │  AI Embeddings   │  ← Cosine similarity dedup
+              │  Criticality AI  │  ← 0-100 urgency scoring
+              │  Heatmap Engine  │  ← Canvas-rendered clusters
+              └────────┬─────────┘
+                       │
+              ┌────────▼─────────┐
+              │  DISPATCH LAYER  │
+              │  Haversine Geo   │  ← 5km geofence matching
+              │  Skill Matcher   │  ← Volunteer scoring
+              │  Message Gen     │  ← Localized WhatsApp alerts
+              └────────┬─────────┘
+                       │
+                  VOLUNTEER 🚁
+```
 
 ---
 
-## 🛡️ Demo Notes
-- **Local Mode**: If no `serviceAccount.json` is provided, the system defaults to a high-fidelity local mock mode with 1,150+ pre-seeded volunteers and 8 initial crisis scenarios.
-- **Pure Mode**: Supports Pure Black/Pure White high-contrast themes for outdoor/nighttime visibility.
+## 🎨 Accessibility & Visibility
+
+CommunityPulse is built for the field, not just the office.
+
+- **Pure Black** high-contrast theme for direct sunlight readability
+- **Pure White** theme for nighttime/low-light operations
+- Voice-first design removes literacy and typing barriers for citizens in distress
 
 ---
 
+## 🛡️ Demo Mode
+
+No credentials needed to explore the full system. Run without `serviceAccount.json` and the app loads a high-fidelity mock environment:
+
+- ✅ **1,150+ pre-seeded volunteers** with varied skills and locations
+- ✅ **8 active crisis scenarios** across different severity levels
+- ✅ All AI features active (requires `GEMINI_API_KEY`)
+- ✅ Full dispatch simulation with match scoring
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] SMS fallback ingestion for low-connectivity zones
+- [ ] Offline-capable PWA for field volunteers
+- [ ] Multi-agency coordination view (Police, Fire, Medical)
+- [ ] Automated post-incident analytics and response time reporting
+
+---
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+---
+
+## 📄 License
+
+MIT © 2025 CommunityPulse Contributors
+
+---
+
+<div align="center">
+
+**Built with urgency. Deployed with care.**
+
+*If this project resonates with you, give it a ⭐ — it helps more builders find it.*
+
+</div>
 
