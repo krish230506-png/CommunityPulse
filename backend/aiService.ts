@@ -85,14 +85,14 @@ export class AIService {
         // GEOGRAPHICAL VALIDATION (Prevent Hallucinations)
         if (result.location && result.location.name) {
           const locName = result.location.name.toLowerCase();
-          
+
           // Emergency Correction for common Indian cities if AI gets lat/lng wrong
           if (locName.includes('noida') && (result.location.lat < 28 || result.location.lat > 29)) {
-             result.location.lat = 28.6282; result.location.lng = 77.3649; // Correct Noida Sec 62
+            result.location.lat = 28.6282; result.location.lng = 77.3649; // Correct Noida Sec 62
           } else if (locName.includes('mumbai') && (result.location.lat > 20 || result.location.lat < 18)) {
-             result.location.lat = 19.0760; result.location.lng = 72.8777;
+            result.location.lat = 19.0760; result.location.lng = 72.8777;
           } else if (locName.includes('delhi') && (result.location.lat < 28 || result.location.lat > 29)) {
-             result.location.lat = 28.6139; result.location.lng = 77.2090;
+            result.location.lat = 28.6139; result.location.lng = 77.2090;
           }
         }
 
@@ -134,13 +134,13 @@ export class AIService {
   }
 
   static async generateDispatchMessage(volunteer: VolunteerProfile, need: NeedEntity): Promise<string> {
-    const prompt = `Act as a high-fidelity crisis coordination system. Generate a SINGLE, concise, professional dispatch message for ${volunteer.name} to handle a ${need.crisisType} emergency at ${need.location.name}. 
-    CRITICAL: 
+    const prompt = `Act as a high-fidelity crisis coordination system. Generate a SINGLE, concise, professional dispatch message for ${volunteer.name} to handle a ${need.crisisType} emergency at ${need.location.name}.
+    CRITICAL:
     - Output ONLY the message text.
-    - DO NOT provide multiple options. 
+    - DO NOT provide multiple options.
     - DO NOT include conversational filler like "Here is your message" or introductory/concluding text.
     - Maintain a tone of professional urgency.`;
-    
+
     try {
       return await this.callWithRotation(async (modelName) => {
         const model = this.getGenAI().getGenerativeModel({ model: modelName });
@@ -168,7 +168,7 @@ export class AIService {
     - Reference specific incidents or volunteers from the context if relevant.
     - If you don't know something, say so.
     - Do not speculate on life-safety without data.`;
-    
+
     const userMessage = messages[messages.length - 1].content;
     const finalPrompt = `${systemPrompt}\n\nUser Question: ${userMessage}`;
 
