@@ -162,18 +162,6 @@ No credentials needed to explore the full system. Run without `serviceAccount.js
 
 ---
 
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
-
-## 📄 License
-
-MIT © 2025 CommunityPulse Contributors
-
----
-
 **Built with urgency. Deployed with care.**
 
 *If this project resonates with you, give it a ⭐ — it helps more builders find it.*
