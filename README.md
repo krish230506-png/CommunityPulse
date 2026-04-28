@@ -3,13 +3,10 @@
 
 **AI-powered crisis coordination that bridges citizens in distress and volunteer responders — in real time.**
 
-[![AI Engine](https://img.shields.io/badge/AI-Gemini_2.0_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
-[![Frontend](https://img.shields.io/badge/React_18-TypeScript-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Backend](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Maps](https://img.shields.io/badge/Leaflet.js-Heatmaps-199900?style=for-the-badge&logo=leaflet&logoColor=white)](https://leafletjs.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 > 🏆 *Built for [Hackathon Name] · Category: Crisis Tech / Civic AI*
+
+> 🌐 **Live Demo**: [community-pulse-t6p0.onrender.com](https://community-pulse-t6p0.onrender.com)
 
 ---
 
@@ -18,15 +15,6 @@
 During a disaster, **coordination kills more time than the disaster itself.** Citizens can't reach responders. Duplicate reports overwhelm operators. Volunteers show up at the wrong place. The right skills never meet the right crisis.
 
 **CommunityPulse fixes this.**
-
----
-
-## 🎬 See It In Action
-
-| Citizen Portal | Command Center | Dispatch Engine |
-|:-:|:-:|:-:|
-| ![Report](docs/screenshots/report.png) | ![Dashboard](docs/screenshots/dashboard.png) | ![Dispatch](docs/screenshots/dispatch.png) |
-| *Speak or type in your language* | *Live heatmap + AI scoring* | *Volunteer matched in seconds* |
 
 ---
 
@@ -106,10 +94,8 @@ npm run dev
 
 ### 3. Navigate
 
-| URL | Interface |
-| :-- | :-- |
-| `http://localhost:5173` | 🖥️ Admin Command Center |
-| `http://localhost:5173/report` | 📱 Citizen Reporting Portal |
+- **Admin Command Center** → `http://localhost:5173`
+- **Citizen Reporting Portal** → `http://localhost:5173/report`
 
 ---
 
